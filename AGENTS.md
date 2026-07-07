@@ -24,12 +24,22 @@ Current stage: Product Discovery.
 
 Do not implement application code unless the user explicitly asks and the required product / architecture documents are ready.
 
-## Required Reading Before Code Changes
+## Required Reading Before Any Project Work
 
+- `README.md`
 - `docs/00-handbook/00-agent-app-development-handbook.md`
+- `docs/01-product/00-current-status.md`
 - `docs/01-product/01-idea.md`
 - `docs/01-product/02-product-discovery.md`
+- `docs/01-product/08-life-ontology.md`
+- `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`
+
+## Required Reading Before Code Changes
+
+Do not make code changes during Product Discovery unless explicitly requested.
+
+Before any future code changes, read the current-status document first, then read the product / architecture documents listed below.
 
 Before architecture or coding work, also read:
 
@@ -38,6 +48,14 @@ Before architecture or coding work, also read:
 - `docs/02-architecture/01-technical-architecture.md`
 - `docs/02-architecture/03-api-design.md`
 - `docs/03-delivery/01-task-breakdown.md`
+
+## Current Product Discovery Task
+
+Current task: continue Product Discovery by following `docs/01-product/00-current-status.md`.
+
+Default next topic: user high-frequency usage scenario.
+
+Do not jump to coding, architecture, database design, or MVP page design until Product Discovery exits.
 
 ## Development Rules
 

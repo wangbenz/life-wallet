@@ -20,9 +20,9 @@ Idea
 
 ## Current Stage
 
-Current stage: Product Definition.
+Current stage: MVP Design.
 
-The current work is Product Definition refinement. Avoid coding unless explicitly requested and the required downstream product / architecture documents are ready.
+The current work is H5 Demo MVP Design. Avoid coding unless explicitly requested and the required downstream product / architecture documents are ready.
 
 ## Required Reading
 
@@ -32,17 +32,19 @@ The current work is Product Definition refinement. Avoid coding unless explicitl
 - `docs/01-product/01-idea.md`
 - `docs/01-product/02-product-discovery.md`
 - `docs/01-product/03-product-definition.md`
+- `docs/01-product/04-concept-validation-plan.md`
+- `docs/01-product/05-mvp-design.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`
 
 ## Current Product Task
 
-Current task: continue Product Definition by following `docs/01-product/00-current-status.md`.
+Current task: continue MVP Design by following `docs/01-product/00-current-status.md`.
 
-Default next topic: Product Definition refinement.
+Default next topic: H5 Demo MVP Design review.
 
-Do not jump to coding, architecture, database design, or MVP page design until Product Definition exits and the required downstream documents are ready.
+Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until MVP Design exits and the required downstream documents are ready.
 
 ## Coding Guidelines
 

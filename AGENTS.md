@@ -20,7 +20,7 @@ Idea
 
 ## Current Stage
 
-Current stage: Product Definition.
+Current stage: MVP Design.
 
 Do not implement application code unless the user explicitly asks and the required product / architecture documents are ready.
 
@@ -32,13 +32,15 @@ Do not implement application code unless the user explicitly asks and the requir
 - `docs/01-product/01-idea.md`
 - `docs/01-product/02-product-discovery.md`
 - `docs/01-product/03-product-definition.md`
+- `docs/01-product/04-concept-validation-plan.md`
+- `docs/01-product/05-mvp-design.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`
 
 ## Required Reading Before Code Changes
 
-Do not make code changes during Product Definition unless explicitly requested and the required downstream documents are ready.
+Do not make code changes during MVP Design unless explicitly requested and the required architecture / task documents are ready.
 
 Before any future code changes, read the current-status document first, then read the product / architecture documents listed below.
 
@@ -52,11 +54,11 @@ Before architecture or coding work, also read:
 
 ## Current Product Task
 
-Current task: continue Product Definition by following `docs/01-product/00-current-status.md`.
+Current task: continue MVP Design by following `docs/01-product/00-current-status.md`.
 
-Default next topic: Product Definition refinement.
+Default next topic: H5 Demo MVP Design review.
 
-Do not jump to coding, architecture, database design, or MVP page design until Product Definition exits and the required downstream documents are ready.
+Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until MVP Design exits and the required downstream documents are ready.
 
 ## Development Rules
 
@@ -71,7 +73,7 @@ Do not jump to coding, architecture, database design, or MVP page design until P
 
 ## Forbidden Actions
 
-- Do not jump from Product Definition directly into full application coding.
+- Do not jump from MVP Design directly into full application coding.
 - Do not remove existing features or documents without explicit instruction.
 - Do not hardcode secrets.
 - Do not skip input validation.

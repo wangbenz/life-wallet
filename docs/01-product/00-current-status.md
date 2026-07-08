@@ -1,21 +1,37 @@
 # Current Status
 
 Status: Confirmed
-Stage: Product Definition
+Stage: MVP Design
 Last Updated: 2026-07-08
 Owner: Human + ChatGPT + Codex
 
 ## 1. 当前阶段
 
-当前项目刚完成 Product Discovery 的文档层面阶段性收束，已经进入 Product Definition 草案阶段。
+当前项目已经完成 Product Discovery 的文档层面阶段性收束，并完成 Product Definition 草案。当前进入 MVP Design 草案阶段。
 
 当前不要进入 Coding，也不要开始做完整 MVP、技术架构、数据库或接口设计。
 
-当前目标是将 Discovery 阶段形成的用户、场景、痛点、机会、边界和关键假设，收束为产品定位、核心价值、第一版范围和成功标准。
+当前目标是将 Product Definition 转化为可执行的小 Demo 范围，优先设计 H5 Demo，用于快速验证核心流程。
 
 当前已创建 Product Definition 草案：
 
 - `docs/01-product/03-product-definition.md`
+
+当前已创建概念验证方案草案：
+
+- `docs/01-product/04-concept-validation-plan.md`
+
+当前已创建 MVP Design 草案：
+
+- `docs/01-product/05-mvp-design.md`
+
+当前阶段策略：
+
+```text
+最终产品形态：微信小程序
+当前验证载体：H5 Demo
+当前验证目标：记录 → AI 解析 → 今日人生账单反馈
+```
 
 ## 2. 当前主线
 
@@ -184,7 +200,7 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 
 ## 5. 当前正在进行
 
-当前 Product Discovery 的逐项核对已经阶段性完成，Product Definition 草案已经创建。
+当前 Product Discovery 的逐项核对已经阶段性完成，Product Definition 草案已经进入 In Review，概念验证方案保留为后续可选路径，当前已进入 H5 Demo MVP Design 草案。
 
 不要跳到页面设计、技术架构或编码。
 
@@ -192,8 +208,9 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 
 下一步建议按顺序讨论：
 
-1. Product Definition refinement：检查产品定位、核心价值、第一版做什么 / 不做什么、成功标准是否准确。
-2. 用户验证计划：是否先进行 5-10 人、7 个记录日的手工验证，还是继续进入 MVP Design 草案。
+1. Review MVP Design：确认 H5 Demo 的目标、必须有、暂不做、页面范围和成功标准。
+2. 进入 Architecture 前确认：H5 Demo 技术栈、AI 调用方式、是否需要后端、测试环境部署方式。
+3. 暂不进入 Coding，直到 MVP Design 和 Architecture 进一步明确。
 
 ## 7. 新会话接手指令
 
@@ -204,12 +221,14 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 - `docs/01-product/00-current-status.md`
 - `docs/01-product/02-product-discovery.md`
 - `docs/01-product/03-product-definition.md`
+- `docs/01-product/04-concept-validation-plan.md`
+- `docs/01-product/05-mvp-design.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`
 
-然后继续 Product Definition，不要写代码。
+然后继续 MVP Design，不要写代码。
 
 默认下一题：
 
-> Product Definition refinement：当前定义草案是否准确？进入 MVP Design 前还需要改什么？
+> Review MVP Design：H5 Demo 的目标、页面范围和成功标准是否准确？

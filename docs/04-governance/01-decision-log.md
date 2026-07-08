@@ -1,7 +1,7 @@
 # Decision Log
 
 Status: Draft
-Stage: Product Definition
+Stage: MVP Design
 Last Updated: 2026-07-08
 Owner: Human + ChatGPT + Codex
 
@@ -259,7 +259,7 @@ Product Discovery 可以在文档层面阶段性收束，下一步进入 Product
 
 - 下一步可以开始 `docs/01-product/03-product-definition.md`。
 - 当前仍不进入 MVP Design、Architecture 或 Coding。
-- 用户验证计划应作为 Definition / MVP Design 的输入，重点验证连续记录意愿、AI 估算可信度和人生账单回访价值。
+- 概念验证方案应作为 Definition / MVP Design 的输入，重点验证连续记录意愿、AI 估算可信度和人生账单回访价值。
 
 ## 2026-07-08：创建 Product Definition 草案
 
@@ -283,4 +283,55 @@ Product Definition 草案可以把 Discovery 结论变成后续 MVP Design 的�
 
 - 新会话接手时需要阅读 Product Definition 草案。
 - 下一步优先检查和收束产品定义，而不是进入 MVP 页面、技术架构或应用代码。
-- MVP Design 前需要确认定义草案和用户验证计划。
+- MVP Design 前需要确认定义草案和概念验证方案。
+
+## 2026-07-08：创建概念验证方案草案
+
+### 类型
+
+Product Decision / Governance Decision
+
+### 背景
+
+Product Definition 已明确产品定位、核心价值、第一版范围和成功标准，但当前还没有可供用户测试的产品。进入 MVP Design 前，需要明确如何在无产品阶段验证自然语言记录、AI 理解和人生账单反馈闭环。
+
+### 最终决策
+
+创建 `docs/01-product/04-concept-validation-plan.md`，将原验证计划调整为“概念验证方案”。该方案采用 5-10 个目标用户、7 个记录日的手工模拟方式，不要求用户测试 App。
+
+### 决策原因
+
+当前最大风险不是技术实现，也不是界面可用性，而是用户是否愿意持续记录、是否信任 AI 对模糊生活片段的估算、是否觉得人生账单反馈值得回访。手工概念验证可以在不写代码、不假装已有产品的情况下快速验证这些核心假设。
+
+### 影响范围
+
+- 下一步应 review 概念验证方案。
+- MVP Design 前需要决定是先执行概念验证，还是先写 MVP Design 草案并保留验证风险。
+- 当前仍不进入架构、数据库、接口或应用代码。
+
+## 2026-07-08：H5 Demo 作为当前 MVP 验证载体
+
+### 类型
+
+Product Decision / UX Decision / Governance Decision
+
+### 背景
+
+最终目标是微信小程序，但当前还处于 MVP Design 阶段。直接先做小程序会引入开发者工具、体验版、测试成员、真机调试和微信生态能力等额外复杂度，可能拖慢核心流程验证。
+
+### 最终决策
+
+最终产品形态保持为微信小程序；当前 MVP 验证载体采用 H5 Demo。
+
+H5 Demo 用于验证自然语言记录、AI 解析、Life Dimension 分类和今日 1 元人生反馈，不验证微信登录、订阅消息、小程序生态能力或完整长期留存。
+
+### 决策原因
+
+当前最需要验证的是“记录 → AI 解析 → 今日人生账单反馈”这个核心闭环是否成立。H5 Demo 可以更快开发、部署和发给用户测试，同时不会改变最终小程序方向。
+
+### 影响范围
+
+- 创建 `docs/01-product/05-mvp-design.md`，作为 H5 Demo MVP Design 草案。
+- 概念验证方案保留为后续可选路径，不阻塞进入 MVP Design。
+- 后续 Architecture 需要考虑 H5 Demo 到微信小程序的迁移路径。
+- 当前仍不进入应用代码，直到 MVP Design 和 Architecture 明确。

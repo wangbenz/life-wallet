@@ -1,7 +1,7 @@
 # Life Wallet / 人生账单
 
 Status: Draft
-Stage: Product Definition
+Stage: MVP Design
 Last Updated: 2026-07-08
 Owner: Human + ChatGPT + Codex
 
@@ -11,9 +11,9 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 AI 人生理解系统�
 
 ## Current Stage
 
-当前阶段：Product Definition（产品定义草案）。
+当前阶段：MVP Design（H5 Demo 草案）。
 
-本阶段重点不是写代码，而是将 Product Discovery 的阶段性结论收束为：产品定位、核心价值、产品边界、第一版做什么 / 不做什么、成功标准。
+本阶段重点不是写代码，而是将 Product Definition 转化为 H5 Demo 的目标、范围、核心流程、页面范围和成功标准。最终产品形态仍是微信小程序。
 
 ## Workflow
 
@@ -35,6 +35,8 @@ Idea
 - `docs/01-product/01-idea.md`
 - `docs/01-product/02-product-discovery.md`
 - `docs/01-product/03-product-definition.md`
+- `docs/01-product/04-concept-validation-plan.md`
+- `docs/01-product/05-mvp-design.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`

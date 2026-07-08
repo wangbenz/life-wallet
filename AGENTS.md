@@ -20,7 +20,7 @@ Idea
 
 ## Current Stage
 
-Current stage: Product Discovery.
+Current stage: Product Definition.
 
 Do not implement application code unless the user explicitly asks and the required product / architecture documents are ready.
 
@@ -31,13 +31,14 @@ Do not implement application code unless the user explicitly asks and the requir
 - `docs/01-product/00-current-status.md`
 - `docs/01-product/01-idea.md`
 - `docs/01-product/02-product-discovery.md`
+- `docs/01-product/03-product-definition.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`
 
 ## Required Reading Before Code Changes
 
-Do not make code changes during Product Discovery unless explicitly requested.
+Do not make code changes during Product Definition unless explicitly requested and the required downstream documents are ready.
 
 Before any future code changes, read the current-status document first, then read the product / architecture documents listed below.
 
@@ -49,13 +50,13 @@ Before architecture or coding work, also read:
 - `docs/02-architecture/03-api-design.md`
 - `docs/03-delivery/01-task-breakdown.md`
 
-## Current Product Discovery Task
+## Current Product Task
 
-Current task: continue Product Discovery by following `docs/01-product/00-current-status.md`.
+Current task: continue Product Definition by following `docs/01-product/00-current-status.md`.
 
-Default next topic: user high-frequency usage scenario.
+Default next topic: Product Definition refinement.
 
-Do not jump to coding, architecture, database design, or MVP page design until Product Discovery exits.
+Do not jump to coding, architecture, database design, or MVP page design until Product Definition exits and the required downstream documents are ready.
 
 ## Development Rules
 
@@ -64,12 +65,13 @@ Do not jump to coding, architecture, database design, or MVP page design until P
 - Do not introduce unrelated dependencies.
 - Keep changes small, reviewable, and reversible.
 - Update docs before code when product understanding changes.
+- When updating `AGENTS.md`, also check and update `CLAUDE.md` so agent instructions stay synchronized.
 - Add or update tests when behavior changes.
 - Run relevant tests after implementation when possible.
 
 ## Forbidden Actions
 
-- Do not jump from Product Discovery directly into full application coding.
+- Do not jump from Product Definition directly into full application coding.
 - Do not remove existing features or documents without explicit instruction.
 - Do not hardcode secrets.
 - Do not skip input validation.

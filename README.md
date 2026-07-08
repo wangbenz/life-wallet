@@ -1,8 +1,8 @@
 # Life Wallet / 人生账单
 
 Status: Draft
-Stage: Product Discovery
-Last Updated: 2026-07-07
+Stage: Product Definition
+Last Updated: 2026-07-08
 Owner: Human + ChatGPT + Codex
 
 ## Project Overview
@@ -11,9 +11,9 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 AI 人生理解系统�
 
 ## Current Stage
 
-当前阶段：Product Discovery（产品发现）。
+当前阶段：Product Definition（产品定义草案）。
 
-本阶段重点不是写代码，而是明确：目标用户、使用场景、核心痛点、现有替代方案、产品机会、关键假设和验证问题。
+本阶段重点不是写代码，而是将 Product Discovery 的阶段性结论收束为：产品定位、核心价值、产品边界、第一版做什么 / 不做什么、成功标准。
 
 ## Workflow
 
@@ -34,6 +34,7 @@ Idea
 - `docs/00-handbook/00-agent-app-development-handbook.md`
 - `docs/01-product/01-idea.md`
 - `docs/01-product/02-product-discovery.md`
+- `docs/01-product/03-product-definition.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`

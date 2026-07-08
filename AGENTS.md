@@ -56,7 +56,7 @@ Before architecture or coding work, also read:
 
 Current task: continue MVP Design by following `docs/01-product/00-current-status.md`.
 
-Default next topic: H5 Demo MVP Design review.
+Default next topic: H5 Demo single-page interaction review.
 
 Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until MVP Design exits and the required downstream documents are ready.
 

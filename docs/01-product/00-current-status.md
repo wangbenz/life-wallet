@@ -208,7 +208,7 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 
 下一步建议按顺序讨论：
 
-1. Review MVP Design：确认 H5 Demo 的目标、必须有、暂不做、页面范围和成功标准。
+1. Review MVP Design：确认 H5 Demo 单页流程、交互细节、必须有、暂不做和成功标准。
 2. 进入 Architecture 前确认：H5 Demo 技术栈、AI 调用方式、是否需要后端、测试环境部署方式。
 3. 暂不进入 Coding，直到 MVP Design 和 Architecture 进一步明确。
 
@@ -231,4 +231,4 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 
 默认下一题：
 
-> Review MVP Design：H5 Demo 的目标、页面范围和成功标准是否准确？
+> Review MVP Design：H5 Demo 单页流程和交互细节是否准确？

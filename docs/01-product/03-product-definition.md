@@ -2,7 +2,7 @@
 
 Status: In Review
 Stage: Product Definition
-Last Updated: 2026-07-08
+Last Updated: 2026-07-09
 Owner: Human + ChatGPT + Codex
 
 ## 1. 产品定位
@@ -11,11 +11,15 @@ Life Wallet 是一个 AI 人生理解系统。
 
 它帮助用户用自然语言低成本记录生活，并通过 AI 将这些记录理解为可统计、可反馈、可长期回看的“人生账单”。
 
+Session 002 后，产品定位进一步修正为：
+
+> Life Wallet 是一个 Agent First 的人生理解产品。微信小程序只是载体，Agent 才是用户与人生数据交互的主入口。
+
 一句话定位：
 
 > 每天一句话，让 AI 帮你看见这一元人生花在了哪里。
 
-Life Wallet 第一版不是要管理用户的人生，而是先帮助用户看见自己的生活分布。
+Life Wallet 第一版不是要管理用户的人生，也不是做一个“带 AI 的小程序”，而是先让 Agent 帮助用户理解今天这一元人生意味着什么。
 
 ## 2. 目标用户
 
@@ -60,7 +64,7 @@ Life Wallet 的核心价值是：
 
 ## 5. 核心闭环
 
-第一版只服务一个核心闭环：
+第一版传统记录反馈闭环是：
 
 ```text
 人生余额冲击
@@ -74,6 +78,22 @@ AI 理解、分类和估算
 生成日 / 最近 7 天 / 月反馈
   ↓
 用户看见生活分布并愿意继续记录
+```
+
+Session 002 后进一步升级为 Agent First 闭环：
+
+```text
+用户自然表达
+  ↓
+Agent 理解
+  ↓
+结构化 Activity
+  ↓
+更新 Memory
+  ↓
+生成 Insight
+  ↓
+用户获得人生理解
 ```
 
 这个闭环中，第一优先级是降低记录成本。只要记录不能足够轻，后续统计、反馈、画像和 Agent 能力都无法成立。
@@ -147,6 +167,18 @@ Dimension / Domain / Topic 是系统理解结构，不是用户配置负担。
 
 第一版先验证自然语言记录、AI 理解和人生账单反馈是否成立，再考虑 Memory、外部数据和更强 Agent 能力。
 
+### 8.6 Agent First
+
+Agent 是产品主入口。页面、图表和按钮都应服务于 Agent 对人生记录的理解、记忆和洞察。
+
+### 8.7 Insight 高于 Dashboard
+
+统计图不是产品核心。图表只作为辅助证据，核心价值是 Agent 基于用户记录和 Memory 生成的 Insight。
+
+### 8.8 Context 决定 Agent 边界
+
+Agent 不做通用问答。是否回答一个问题，取决于该问题是否与用户当前人生上下文、记录、目标、学习或长期 Memory 相关。
+
 ## 9. 成功标准
 
 Product Definition 阶段的第一版成功标准：
@@ -217,4 +249,4 @@ Product Definition 进入 MVP Design 前，应满足以下标准：
 
 阶段性结论：
 
-> Product Definition 文档主体已经初步完成；下一步进入 H5 Demo MVP Design 草案。概念验证方案保留为后续可选，不作为进入 MVP Design 的前置条件。
+> Product Definition 文档主体已经初步完成，但 Session 002 后产品方向调整为 Agent First。下一步需要回到 Life Ontology 和 Agent Boundary，重新校准 MVP Design。

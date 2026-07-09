@@ -1,8 +1,8 @@
 # Decision Log
 
 Status: Draft
-Stage: MVP Design
-Last Updated: 2026-07-08
+Stage: Product Discovery
+Last Updated: 2026-07-09
 Owner: Human + ChatGPT + Codex
 
 ## Decision-001: 每天固定扣除 1 元人生
@@ -403,3 +403,160 @@ H5 Demo 第一版采用多页面 + 底部 Tab 菜单结构：
 - MVP Design 文档从单页流程调整为多 Tab 页面结构。
 - 后续 H5 Demo 架构需要支持前端路由或 Tab 状态切换。
 - 当前仍不进入应用代码，直到 MVP Design 和 Architecture 明确。
+
+### 后续状态
+
+Session 002 后，该方案被识别为仍偏传统小程序思维，需要围绕 Agent First Prototype 重新设计。
+
+## Decision-008: Agent 是产品主入口
+
+### Status
+
+Proposed
+
+### 内容
+
+Agent 应作为 Life Wallet 的产品主入口。
+
+用户进入产品后，不应先寻找“记录按钮”或统计入口，而是直接向 Agent 表达今天发生了什么、最近怎么样、想复盘什么。
+
+### 原因
+
+Life Wallet 的核心不是页面，而是：
+
+```text
+用户 → Agent → Memory → Insight
+```
+
+如果入口仍然以传统功能页面为中心，产品会退回“带 AI 的小程序”，而不是 AI Native 产品。
+
+## Decision-009: 首页采用 Agent First 设计
+
+### Status
+
+Proposed
+
+### 内容
+
+首页不再以功能入口、统计图和按钮为中心，而应以 Agent First 方式呈现：
+
+```text
+人生余额
+今日 1 元人生
+Agent 对话
+AI 理解
+今日总结
+```
+
+### 原因
+
+用户每天最重要的动作不是进入某个功能模块，而是自然表达和复盘今天这一元人生花到了哪里。
+
+## Decision-010: Dashboard 不作为核心价值，Insight 高于统计图
+
+### Status
+
+Proposed
+
+### 内容
+
+Dashboard、饼图、折线图、柱状图等统计展示不作为 Life Wallet 的核心价值。
+
+图表可以作为辅助证据，但核心价值应是 Agent 基于用户记录、Memory 和趋势生成 Insight。
+
+### 原因
+
+AI Native 产品中，用户更关心“我最近怎么样”“我该如何理解自己的状态”，而不是主动阅读一堆仪表盘。
+
+## Decision-011: Agent 不定位为通用聊天机器人
+
+### Status
+
+Proposed
+
+### 内容
+
+Life Wallet Agent 不定位为百科、搜索引擎或万能助手。
+
+Agent 可以处理：
+
+- 每日记录。
+- 修改记录。
+- 人生总结。
+- 长期分析。
+- 成长建议。
+- 时间分配。
+- 情绪理解。
+
+原则上不处理与当前人生记录和用户上下文无关的通识问题。
+
+### 原因
+
+如果 Agent 什么都回答，产品会逐渐失焦，变成一个普通 ChatGPT 入口。
+
+## Decision-012: Agent 的能力边界由用户当前 Context 决定
+
+### Status
+
+Proposed
+
+### 内容
+
+Agent 是否回答一个问题，不只看问题类型，而要看问题是否与用户当前人生上下文相关。
+
+上下文包括：
+
+- 当天记录。
+- 近期记录。
+- 用户目标。
+- 学习内容。
+- 工作内容。
+- 健康状态。
+- 长期 Memory。
+
+### 原因
+
+同一个问题在不同上下文下边界不同。
+
+例如 `HashMap 为什么线程不安全？` 通常是通识技术问题，但如果用户最近正在记录 Java 学习，它就可能是当前成长上下文的一部分。
+
+## Decision-013: 第一版先实现自定义轻量 Life Agent，暂不重度依赖 LangChain4j
+
+### Status
+
+Proposed
+
+### 内容
+
+第一版 Agent 采用 Spring Boot 自定义工作流实现，而不是直接使用 LangChain4j 的 Agent 编排能力。
+
+核心流程包括：
+
+1. IntentRecognizer：识别用户意图。
+2. ActivityExtractor：抽取用户活动。
+3. LifeOntologyClassifier：归入 Life Dimension / Domain / Topic。
+4. MemoryUpdater：更新用户长期记忆。
+5. InsightGenerator：生成今日理解与反馈。
+
+LangChain4j 第一阶段最多只作为 LLM 调用封装、Prompt 管理或结构化输出工具使用，不作为 Agent 核心编排框架。
+
+### 原因
+
+本项目的一个重要目标是帮助开发者学习 Agent 开发。
+
+如果第一版直接使用 LangChain4j 等 Agent 框架，框架会隐藏很多关键过程，例如用户意图如何识别、多步骤任务如何拆解、LLM 输出如何校验、何时调用工具、何时更新 Memory、如何处理异常输入、如何控制 Agent 边界。
+
+因此，第一版应优先手写一个可理解、可调试、可替换的轻量 Life Agent 工作流。
+
+### 后续演进
+
+- Phase 1：自定义轻量 Life Agent，理解 Agent 基础流程。
+- Phase 2：引入 LangChain4j 管理 LLM 调用、Prompt、结构化输出。
+- Phase 3：当 Tool Calling、Memory、RAG、多步骤编排变复杂后，再评估 LangChain4j Agent 能力。
+- Phase 4：根据实际复杂度决定是否保留自定义编排，或迁移到框架化 Agent。
+
+### 约束
+
+在 Phase 1 中，不允许为了“更快实现”而直接把核心流程隐藏在框架中。
+
+代码结构必须显式体现 Agent 的关键步骤。

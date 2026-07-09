@@ -20,9 +20,9 @@ Idea
 
 ## Current Stage
 
-Current stage: MVP Design.
+Current stage: Product Discovery.
 
-The current work is H5 Demo MVP Design. Avoid coding unless explicitly requested and the required downstream product / architecture documents are ready.
+The current work is Agent First Product Discovery, focused on Life Ontology, Memory, Insight, and Agent boundary. Avoid coding unless explicitly requested and the required downstream product / architecture documents are ready.
 
 ## Required Reading
 
@@ -40,11 +40,11 @@ The current work is H5 Demo MVP Design. Avoid coding unless explicitly requested
 
 ## Current Product Task
 
-Current task: continue MVP Design by following `docs/01-product/00-current-status.md`.
+Current task: continue Agent First Product Discovery by following `docs/01-product/00-current-status.md`.
 
-Default next topic: H5 Demo home/profile tab responsibility review.
+Default next topic: Life Ontology and Agent boundary.
 
-Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until MVP Design exits and the required downstream documents are ready.
+Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until Product Discovery exits again and the required downstream documents are ready.
 
 ## Coding Guidelines
 

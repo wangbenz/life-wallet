@@ -1,5 +1,10 @@
 # Life Ontology（人生本体模型）草案
 
+Status: Draft
+Stage: Product Discovery
+Last Updated: 2026-07-09
+Owner: Human + ChatGPT + Codex
+
 ## 目标
 
 定义 Life Wallet 如何理解“人生”。
@@ -11,6 +16,18 @@
 - Domain 和 Topic 如何演化？
 - 系统是否理解人生质量、满意度、价值感？
 - AI Agent 的能力边界在哪里？
+
+Session 002 后，本文件成为下一阶段 Product Discovery 的默认主题。
+
+需要重点回答：
+
+1. 什么是一次 Activity？
+2. 什么事情值得记录？
+3. 一天如何定义？
+4. Life Dimension 最终有哪些？
+5. Domain 如何演化？
+6. Memory 如何形成？
+7. Agent 如何利用长期 Memory 生成 Insight？
 
 ## 当前已确定
 
@@ -97,3 +114,20 @@ Activity 是用户自然语言中可被 AI 识别的生活事件。
 
 - 用户主动询问“我该怎么调整”时，AI 可以回答到什么程度？
 - AI 能否指出风险模式，例如长期睡眠不足、持续缺少关系投入？
+
+Session 002 阶段性原则：
+
+> Agent 的能力边界由用户当前 Context 决定，而不是由问题本身决定。
+
+这意味着 Agent 不是通用聊天机器人，也不是百科或搜索引擎。它原则上不回答与用户人生记录无关的通识问题。
+
+但如果问题与用户当前记录、目标、学习内容、工作内容、健康状态或长期 Memory 高度相关，Agent 可以提供简短、克制、面向成长的回答，并引导用户把相关内容纳入记录或复盘。
+
+示例：
+
+```text
+昨天记录：今天学习 Java 两小时。
+今天询问：HashMap 为什么线程不安全？
+```
+
+这种问题虽然属于 Java 通识知识，但因为它与用户当前学习上下文直接相关，Agent 可以简要回答，并进一步帮助用户整理学习记录或生成复盘建议。

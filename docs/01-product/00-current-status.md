@@ -1,17 +1,17 @@
 # Current Status
 
 Status: Confirmed
-Stage: MVP Design
-Last Updated: 2026-07-08
+Stage: Product Discovery
+Last Updated: 2026-07-09
 Owner: Human + ChatGPT + Codex
 
 ## 1. 当前阶段
 
-当前项目已经完成 Product Discovery 的文档层面阶段性收束，并完成 Product Definition 草案。当前进入 MVP Design 草案阶段。
+当前项目在完成 Product Discovery、Product Definition 草案和 H5 Demo MVP Design 草案后，根据 Session 002 重新打开 Product Discovery。
 
 当前不要进入 Coding，也不要开始做完整 MVP、技术架构、数据库或接口设计。
 
-当前目标是将 Product Definition 转化为可执行的小 Demo 范围，优先设计 H5 Demo，用于快速验证核心流程。
+当前目标是重新确认 AI Native / Agent First 的产品方向，并围绕 Life Ontology、Memory、Insight 和 Agent 边界继续 Product Discovery。
 
 当前已创建 Product Definition 草案：
 
@@ -25,12 +25,15 @@ Owner: Human + ChatGPT + Codex
 
 - `docs/01-product/05-mvp-design.md`
 
-当前阶段策略：
+当前 H5 Demo MVP Design 草案需要重新评估。上一版 `首页｜账单｜我的` 结构仍偏传统小程序思维，后续原型方向应转向 Agent First Prototype。
+
+当前阶段策略调整为：
 
 ```text
-最终产品形态：微信小程序
-当前验证载体：H5 Demo
-当前验证目标：记录 → AI 解析 → 今日人生账单反馈
+最终产品载体：微信小程序
+产品核心：Agent First / AI Native
+交互核心：用户 → Agent → Memory → Insight
+下一步主题：Life Ontology
 ```
 
 ## 2. 当前主线
@@ -38,6 +41,10 @@ Owner: Human + ChatGPT + Codex
 当前主线问题：
 
 > Life Wallet 是否解决了一个真实、值得做、能持续使用的问题？
+
+Session 002 后新增主线问题：
+
+> Life Wallet 如何从“带 AI 的小程序”转向“以 Agent 为中心的人生产品”？
 
 当前推进方式：
 
@@ -181,6 +188,75 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 
 > Product Discovery 可以在文档层面阶段性收束，下一步可以进入 Product Definition 草案；真实用户验证结果应作为后续 Definition / MVP Design 的重要输入。
 
+### 3.14 Agent First 产品方向：已确认
+
+Session 002 确认：
+
+> Life Wallet 不是“带 AI 的小程序”，而是一个以 Agent 为中心的人生产品。微信小程序只是载体。
+
+产品核心从传统页面流：
+
+```text
+首页 → 记录 → 统计 → 我的
+```
+
+调整为：
+
+```text
+用户 → Agent → Memory → Insight
+```
+
+### 3.15 Agent 作为产品主入口：已确认
+
+Agent 不只是聊天机器人，而是产品主入口。
+
+用户进入产品后，不应先寻找“记录按钮”，而是直接向 Agent 表达今天发生了什么、最近怎么样、想复盘什么。
+
+### 3.16 页面方向：待重新设计
+
+上一版 H5 Demo 的 `首页｜账单｜我的` 结构仍偏传统小程序。
+
+新的原型方向建议为：
+
+```text
+Today（Agent）｜Life（人生）｜Me（我的）
+```
+
+- Today：人生余额、今日记录、Agent 对话、AI 理解、今日总结。
+- Life：长期趋势、Memory、人生画像、Insight、时间轴。
+- Me：生日、预期寿命、AI 设置、数据管理。
+
+### 3.17 Dashboard 降级，Insight 升级：已确认
+
+Dashboard、统计图、饼图、折线图不是核心价值。
+
+AI Native 产品的核心应是：
+
+```text
+用户提问 / 自然表达
+  ↓
+Agent 基于记录和 Memory 生成 Insight
+```
+
+图表是辅助，Insight 才是价值。
+
+### 3.18 Agent 边界：已确认
+
+Agent 不定位为通用聊天机器人，不做百科、搜索引擎或万能助手。
+
+Agent 的职责始终围绕：
+
+```text
+理解人生
+```
+
+Agent 能力边界由用户当前人生上下文 Context 决定，而不是由问题字面类型决定。
+
+例如：
+
+- 用户最近记录了 Java 学习，询问 Java 学习相关问题，可以简要回答并引导记录。
+- 用户提出与当前人生上下文无关的通识问题，应礼貌说明更适合通用 AI 助手。
+
 ## 4. Discovery Checklist 状态
 
 | 序号 | 项目 | 当前状态 | 说明 |
@@ -200,17 +276,18 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 
 ## 5. 当前正在进行
 
-当前 Product Discovery 的逐项核对已经阶段性完成，Product Definition 草案已经进入 In Review，概念验证方案保留为后续可选路径，当前已进入 H5 Demo MVP Design 草案。
+当前重新进入 Product Discovery 的 Agent First / Life Ontology 分支。
 
-不要跳到页面设计、技术架构或编码。
+不要跳到传统页面细化、技术架构或编码。
 
 ## 6. 下一步应该讨论
 
 下一步建议按顺序讨论：
 
-1. Review MVP Design：确认 H5 Demo 多 Tab 页面结构，尤其是首页用于展示剩余人生和记录，我的用于修改生日和期望寿命。
-2. 进入 Architecture 前确认：H5 Demo 技术栈、AI 调用方式、是否需要后端、测试环境部署方式。
-3. 暂不进入 Coding，直到 MVP Design 和 Architecture 进一步明确。
+1. Life Ontology：什么是 Activity？什么事情值得记录？一天如何定义？
+2. Memory：哪些事实和趋势进入长期记忆？如何被用户查看、修正和删除？
+3. Agent Boundary：Agent 如何根据用户当前 Context 决定回答边界？
+4. Agent First Prototype：基于 Today / Life / Me 重新设计原型，而不是继续传统 H5 Tab 页面。
 
 ## 7. 新会话接手指令
 
@@ -227,8 +304,8 @@ Life Wallet 第一版不做传统记账、任务管理、打卡习惯、精确�
 - `docs/01-product/09-discovery-questions.md`
 - `docs/04-governance/01-decision-log.md`
 
-然后继续 MVP Design，不要写代码。
+然后继续 Product Discovery 的 Agent First / Life Ontology 讨论，不要写代码。
 
 默认下一题：
 
-> Review MVP Design：首页展示剩余人生和记录入口，我的修改生日和期望寿命，这个 Tab 分工是否准确？
+> Life Ontology：什么是一次 Activity？什么事情值得记录？

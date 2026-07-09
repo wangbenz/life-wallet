@@ -1,9 +1,14 @@
 # MVP Design
 
 Status: Draft
-Stage: MVP Design
-Last Updated: 2026-07-08
+Stage: Product Discovery / MVP Design Rework
+Last Updated: 2026-07-09
 Owner: Human + ChatGPT + Codex
+
+> Session 002 Update:
+> 本文件保留上一版 H5 Demo MVP Design 草案，但其 `首页｜账单｜我的` 结构已被识别为偏传统小程序思维。
+> 后续 MVP Design 需要围绕 Agent First Prototype 重构。
+> 旧草案不删除，用于保留方案演进记录。
 
 ## 1. 阶段目标
 
@@ -24,6 +29,39 @@ Owner: Human + ChatGPT + Codex
 - 不依赖微信小程序体验版、审核、测试成员配置和真机调试。
 - 当前最需要验证的是核心流程，而不是微信生态能力。
 - 后续可以将核心逻辑、Prompt、分类体系和 API 迁移到微信小程序。
+
+## 1.1 Session 002 后的方向修正
+
+Session 002 确认：
+
+> Life Wallet 不是“带 AI 的小程序”，而是一个以 Agent 为中心的人生产品。
+
+因此，H5 Demo 不应只复刻传统小程序的功能页面，而应优先验证 Agent First 体验。
+
+新原型方向建议调整为：
+
+```text
+Today（Agent）｜Life（人生）｜Me（我的）
+```
+
+其中：
+
+- Today（Agent）：产品首页和主入口，展示人生余额、今日记录、Agent 对话、AI 理解和今日总结。
+- Life（人生）：长期人生画像、趋势、Memory、Insight 和阶段性成长回看。
+- Me（我的）：生日、预计寿命、AI 设置、数据管理等个人设置。
+
+上一版 `首页｜账单｜我的` 中的“账单”不应继续作为核心页面心智。账单、图表和明细应退到 Agent 理解结果的一部分，而不是成为产品中心。
+
+阶段性设计原则：
+
+```text
+聊天为主
+页面为辅
+AI 为中心
+用户自然表达
+```
+
+后续需要重新绘制 Agent First Prototype，参考方向是用户提供的“人生存钱罐 · Agent 版”草图：Today 页以人生余额和 Agent 对话为主，理解结果页用于确认 AI 解析，Life 页用于长期画像和洞察。
 
 ## 2. Demo 核心目标
 
@@ -146,7 +184,11 @@ H5 Demo 明确不做：
 - 支付、会员、商业化。
 - 正式数据分析后台。
 
-## 5. 页面范围
+## 5. 页面范围（旧草案，待重构）
+
+> 注意：本节为 2026-07-08 的旧版 H5 Tab 草案。
+> Session 002 后，页面结构需要从 `首页｜账单｜我的` 重构为 `Today（Agent）｜Life（人生）｜Me（我的）`。
+> 保留本节用于记录方案演进，不作为后续实现的直接依据。
 
 H5 Demo 第一版采用类微信小程序的多 Tab 结构，而不是单页长表单。
 

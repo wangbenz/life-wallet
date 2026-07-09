@@ -20,9 +20,9 @@ Idea
 
 ## Current Stage
 
-Current stage: Product Discovery.
+Current stage: MVP Coding Readiness / Architecture.
 
-The current work is Agent First Product Discovery, focused on Life Ontology, Memory, Insight, and Agent boundary. Avoid coding unless explicitly requested and the required downstream product / architecture documents are ready.
+The current work is preparing and starting the H5 Agent Demo implementation. Coding is allowed after the user explicitly asks to start implementation and the MVP Coding Readiness / Architecture / Task Breakdown documents have been read.
 
 ## Required Reading
 
@@ -34,17 +34,21 @@ The current work is Agent First Product Discovery, focused on Life Ontology, Mem
 - `docs/01-product/03-product-definition.md`
 - `docs/01-product/04-concept-validation-plan.md`
 - `docs/01-product/05-mvp-design.md`
+- `docs/01-product/06-mvp-coding-readiness.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
+- `docs/02-architecture/01-technical-architecture.md`
+- `docs/02-architecture/03-api-design.md`
+- `docs/03-delivery/01-task-breakdown.md`
 - `docs/04-governance/01-decision-log.md`
 
 ## Current Product Task
 
-Current task: continue Agent First Product Discovery by following `docs/01-product/00-current-status.md`.
+Current task: prepare and start H5 Agent Demo implementation by following `docs/01-product/00-current-status.md` and `docs/03-delivery/01-task-breakdown.md`.
 
-Default next topic: Life Ontology and Agent boundary.
+Default next topic: Milestone 1 project skeleton.
 
-Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until Product Discovery exits again and the required downstream documents are ready.
+Do not build the full WeChat Mini Program yet. Implement only the first H5 Agent Demo scope described in the readiness, architecture, API, and task breakdown documents.
 
 ## Coding Guidelines
 

@@ -1,7 +1,7 @@
 # Life Wallet / 人生账单
 
 Status: Draft
-Stage: Product Discovery
+Stage: MVP Coding Readiness / Architecture
 Last Updated: 2026-07-09
 Owner: Human + ChatGPT + Codex
 
@@ -11,9 +11,9 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 Agent First 的 AI 人�
 
 ## Current Stage
 
-当前阶段：Product Discovery（Agent First / Life Ontology）。
+当前阶段：MVP Coding Readiness / Architecture。
 
-本阶段重点不是写代码，而是重新确认 AI Native / Agent First 产品方向，继续定义 Life Ontology、Memory、Insight 和 Agent 边界。
+当前已完成第一版 H5 Agent Demo 的最小产品边界确认，下一步基于最小 Architecture / API / Task Breakdown 开始代码实现。
 
 ## Workflow
 
@@ -37,10 +37,14 @@ Idea
 - `docs/01-product/03-product-definition.md`
 - `docs/01-product/04-concept-validation-plan.md`
 - `docs/01-product/05-mvp-design.md`
+- `docs/01-product/06-mvp-coding-readiness.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
+- `docs/02-architecture/01-technical-architecture.md`
+- `docs/02-architecture/03-api-design.md`
+- `docs/03-delivery/01-task-breakdown.md`
 - `docs/04-governance/01-decision-log.md`
 
 ## Working Rule
 
-Product understanding comes before implementation. Do not enter Coding until Product Discovery, Product Definition, MVP Design, Architecture, API Design, and Task Breakdown are sufficiently clear.
+Product understanding comes before implementation. Current first implementation scope is limited to the H5 Agent Demo described in the readiness, architecture, API, and task breakdown documents.

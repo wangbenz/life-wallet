@@ -1,17 +1,17 @@
 # Current Status
 
 Status: Confirmed
-Stage: Product Discovery
+Stage: MVP Coding Readiness / Architecture
 Last Updated: 2026-07-09
 Owner: Human + ChatGPT + Codex
 
 ## 1. 当前阶段
 
-当前项目在完成 Product Discovery、Product Definition 草案和 H5 Demo MVP Design 草案后，根据 Session 002 重新打开 Product Discovery。
+当前项目在完成 Product Discovery、Product Definition 草案和 H5 Demo MVP Design 草案后，根据 Session 002 重新打开 Product Discovery，并已完成进入代码前的最小边界确认。
 
-当前不要进入 Coding，也不要开始做完整 MVP、技术架构、数据库或接口设计。
+当前不要开始做完整微信小程序，也不要扩大 MVP 范围。
 
-当前目标是重新确认 AI Native / Agent First 的产品方向，并围绕 Life Ontology、Memory、Insight 和 Agent 边界继续 Product Discovery。
+当前目标是短平快进入第一版 H5 Agent Demo 的 Architecture、Task Breakdown 和 Coding。
 
 当前已创建 Product Definition 草案：
 
@@ -25,7 +25,17 @@ Owner: Human + ChatGPT + Codex
 
 - `docs/01-product/05-mvp-design.md`
 
-当前 H5 Demo MVP Design 草案需要重新评估。上一版 `首页｜账单｜我的` 结构仍偏传统小程序思维，后续原型方向应转向 Agent First Prototype。
+当前已创建 MVP Coding Readiness：
+
+- `docs/01-product/06-mvp-coding-readiness.md`
+
+当前已创建最小 Architecture / Delivery 文档：
+
+- `docs/02-architecture/01-technical-architecture.md`
+- `docs/02-architecture/03-api-design.md`
+- `docs/03-delivery/01-task-breakdown.md`
+
+上一版 H5 Demo MVP Design 草案中的 `首页｜账单｜我的` 结构已被新的 Agent First 开工边界取代。后续实现以 `Today（Agent）｜Life（人生）｜Me（我的）` 为准。
 
 当前阶段策略调整为：
 
@@ -33,7 +43,7 @@ Owner: Human + ChatGPT + Codex
 最终产品载体：微信小程序
 产品核心：Agent First / AI Native
 交互核心：用户 → Agent → Memory → Insight
-下一步主题：Life Ontology
+下一步主题：H5 Agent Demo Coding
 ```
 
 ## 2. 当前主线
@@ -257,6 +267,20 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 - 用户最近记录了 Java 学习，询问 Java 学习相关问题，可以简要回答并引导记录。
 - 用户提出与当前人生上下文无关的通识问题，应礼貌说明更适合通用 AI 助手。
 
+### 3.19 Life Ontology v0.1：Activity 基础规则已确认
+
+当前已确认第一版 Activity 规则：
+
+- Activity 是用户生活中可被记录、理解、归类的一段行为或状态。
+- 值得记录的不是所有事情，而是会影响用户理解一天的事情。
+- 太碎的动作默认不单独成 Activity，除非用户明确表达它有特殊意义。
+- 一天的归属优先尊重用户自然表达，记录时间不等于发生时间。
+- 第一版不做分钟级审计，也不要求用户把一天补齐为 24 小时。
+
+详细规则见：
+
+- `docs/01-product/08-life-ontology.md`
+
 ## 4. Discovery Checklist 状态
 
 | 序号 | 项目 | 当前状态 | 说明 |
@@ -276,18 +300,18 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 ## 5. 当前正在进行
 
-当前重新进入 Product Discovery 的 Agent First / Life Ontology 分支。
+当前已完成进入代码前的最小产品边界确认。
 
-不要跳到传统页面细化、技术架构或编码。
+不要继续扩大 Product Discovery。下一步可以基于最小 Architecture 和 Task Breakdown 进入代码实现。
 
 ## 6. 下一步应该讨论
 
-下一步建议按顺序讨论：
+下一步建议按顺序推进：
 
-1. Life Ontology：什么是 Activity？什么事情值得记录？一天如何定义？
-2. Memory：哪些事实和趋势进入长期记忆？如何被用户查看、修正和删除？
-3. Agent Boundary：Agent 如何根据用户当前 Context 决定回答边界？
-4. Agent First Prototype：基于 Today / Life / Me 重新设计原型，而不是继续传统 H5 Tab 页面。
+1. 确认最小 Architecture / API / Task Breakdown 是否可以开工。
+2. 开始 Milestone 1：项目骨架。
+3. 进入 Milestone 2：人生账户。
+4. 进入 Milestone 3：Today Agent 记录。
 
 ## 7. 新会话接手指令
 
@@ -300,12 +324,16 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 - `docs/01-product/03-product-definition.md`
 - `docs/01-product/04-concept-validation-plan.md`
 - `docs/01-product/05-mvp-design.md`
+- `docs/01-product/06-mvp-coding-readiness.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
+- `docs/02-architecture/01-technical-architecture.md`
+- `docs/02-architecture/03-api-design.md`
+- `docs/03-delivery/01-task-breakdown.md`
 - `docs/04-governance/01-decision-log.md`
 
-然后继续 Product Discovery 的 Agent First / Life Ontology 讨论，不要写代码。
+然后基于 `docs/03-delivery/01-task-breakdown.md` 开始第一版 H5 Agent Demo 实现。
 
 默认下一题：
 
-> Life Ontology：什么是一次 Activity？什么事情值得记录？
+> 开始 Milestone 1：项目骨架。

@@ -20,9 +20,9 @@ Idea
 
 ## Current Stage
 
-Current stage: Product Discovery.
+Current stage: MVP Coding Readiness / Architecture.
 
-Do not implement application code unless the user explicitly asks and the required product / architecture documents are ready.
+Application code can start after the user explicitly asks and the MVP Coding Readiness / Architecture / Task Breakdown documents have been read.
 
 ## Required Reading Before Any Project Work
 
@@ -34,13 +34,17 @@ Do not implement application code unless the user explicitly asks and the requir
 - `docs/01-product/03-product-definition.md`
 - `docs/01-product/04-concept-validation-plan.md`
 - `docs/01-product/05-mvp-design.md`
+- `docs/01-product/06-mvp-coding-readiness.md`
 - `docs/01-product/08-life-ontology.md`
 - `docs/01-product/09-discovery-questions.md`
+- `docs/02-architecture/01-technical-architecture.md`
+- `docs/02-architecture/03-api-design.md`
+- `docs/03-delivery/01-task-breakdown.md`
 - `docs/04-governance/01-decision-log.md`
 
 ## Required Reading Before Code Changes
 
-Do not make code changes during Product Discovery unless explicitly requested and the required product / architecture documents are ready.
+Do not make code changes unless explicitly requested and the required product / architecture / task documents are ready.
 
 Before any future code changes, read the current-status document first, then read the product / architecture documents listed below.
 
@@ -48,17 +52,18 @@ Before architecture or coding work, also read:
 
 - `docs/01-product/03-product-definition.md`
 - `docs/01-product/05-mvp-design.md`
+- `docs/01-product/06-mvp-coding-readiness.md`
 - `docs/02-architecture/01-technical-architecture.md`
 - `docs/02-architecture/03-api-design.md`
 - `docs/03-delivery/01-task-breakdown.md`
 
 ## Current Product Task
 
-Current task: continue Agent First Product Discovery by following `docs/01-product/00-current-status.md`.
+Current task: prepare and start H5 Agent Demo implementation by following `docs/01-product/00-current-status.md` and `docs/03-delivery/01-task-breakdown.md`.
 
-Default next topic: Life Ontology and Agent boundary.
+Default next topic: Milestone 1 project skeleton.
 
-Do not jump to coding, architecture, database design, or full WeChat Mini Program implementation until Product Discovery exits again and the required downstream documents are ready.
+Do not build the full WeChat Mini Program yet. Implement only the first H5 Agent Demo scope described in the readiness, architecture, API, and task breakdown documents.
 
 ## Development Rules
 
@@ -73,7 +78,7 @@ Do not jump to coding, architecture, database design, or full WeChat Mini Progra
 
 ## Forbidden Actions
 
-- Do not jump from Product Discovery directly into full application coding.
+- Do not jump into full WeChat Mini Program implementation.
 - Do not remove existing features or documents without explicit instruction.
 - Do not hardcode secrets.
 - Do not skip input validation.

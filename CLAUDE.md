@@ -46,7 +46,7 @@ The current work is preparing and starting the H5 Agent Demo implementation. Cod
 
 Current task: prepare and start H5 Agent Demo implementation by following `docs/01-product/00-current-status.md` and `docs/03-delivery/01-task-breakdown.md`.
 
-Default next topic: Milestone 1 project skeleton.
+Default next topic: Milestone 2 life account.
 
 Do not build the full WeChat Mini Program yet. Implement only the first H5 Agent Demo scope described in the readiness, architecture, API, and task breakdown documents.
 

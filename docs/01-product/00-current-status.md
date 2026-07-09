@@ -300,18 +300,18 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 ## 5. 当前正在进行
 
-当前已完成进入代码前的最小产品边界确认。
+当前已完成进入代码前的最小产品边界确认，并完成 Milestone 1 项目骨架。
 
-不要继续扩大 Product Discovery。下一步可以基于最小 Architecture 和 Task Breakdown 进入代码实现。
+不要继续扩大 Product Discovery。下一步进入 Milestone 2：人生账户。
 
 ## 6. 下一步应该讨论
 
 下一步建议按顺序推进：
 
-1. 确认最小 Architecture / API / Task Breakdown 是否可以开工。
-2. 开始 Milestone 1：项目骨架。
-3. 进入 Milestone 2：人生账户。
-4. 进入 Milestone 3：Today Agent 记录。
+1. Milestone 2：人生账户。
+2. 实现账户设置 API。
+3. 实现 Me 页生日和预期寿命设置。
+4. Today 页展示人生余额。
 
 ## 7. 新会话接手指令
 
@@ -332,8 +332,8 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 - `docs/03-delivery/01-task-breakdown.md`
 - `docs/04-governance/01-decision-log.md`
 
-然后基于 `docs/03-delivery/01-task-breakdown.md` 开始第一版 H5 Agent Demo 实现。
+然后基于 `docs/03-delivery/01-task-breakdown.md` 继续第一版 H5 Agent Demo 实现。
 
 默认下一题：
 
-> 开始 Milestone 1：项目骨架。
+> 开始 Milestone 2：人生账户。

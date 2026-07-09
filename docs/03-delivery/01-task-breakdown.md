@@ -25,6 +25,8 @@ Life Agent 解析 Activity
 
 ## 2. Milestone 1：项目骨架
 
+Status: Done
+
 - 创建后端 Spring Boot 项目。
 - 创建 H5 前端项目。
 - 配置本地启动方式。
@@ -36,7 +38,17 @@ Life Agent 解析 Activity
 - 前端能启动。
 - 前端能调用后端健康检查接口。
 
+完成记录：
+
+- 已创建 Spring Boot 后端骨架：`backend/`。
+- 已创建 H5 前端骨架：`frontend/`。
+- 已实现后端健康检查：`GET /api/health`。
+- 已配置 Vite `/api` 代理到 `http://127.0.0.1:8080`。
+- 已验证后端测试、前端构建、后端启动、前端启动和代理调用。
+
 ## 3. Milestone 2：人生账户
+
+Status: Next
 
 - 实现账户设置 API。
 - 实现生日和预期寿命校验。

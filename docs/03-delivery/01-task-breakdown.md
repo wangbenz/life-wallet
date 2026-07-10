@@ -48,7 +48,7 @@ Status: Done
 
 ## 3. Milestone 2：人生账户
 
-Status: Next
+Status: Done
 
 - 实现账户设置 API。
 - 实现生日和预期寿命校验。
@@ -61,7 +61,18 @@ Status: Next
 - 用户可以设置生日和预期寿命。
 - 页面能展示剩余人生天数。
 
+完成记录：
+
+- 已实现账户设置 API：`POST /api/account`。
+- 已实现账户获取 API：`GET /api/account`。
+- 已实现生日和预期寿命校验。
+- 已计算总人生天数、已消耗天数和剩余天数。
+- Me 页已支持设置生日和预期寿命。
+- Today / Life 页已展示人生余额相关信息。
+
 ## 4. Milestone 3：Today Agent 记录
+
+Status: Done
 
 - Today 页实现 Agent 对话式输入。
 - 后端实现记录提交 API。
@@ -73,7 +84,17 @@ Status: Next
 - 用户可以输入一段自然语言记录。
 - 后端可以保存记录原文。
 
+完成记录：
+
+- Today 页底部输入框已支持提交自然语言记录。
+- 已实现记录提交 API：`POST /api/agent/records`。
+- 已实现今日记录获取 API：`GET /api/agent/records/today`。
+- 后端已保存用户原始记录；Milestone 4 完成后响应状态升级为 `ANALYZED`。
+- 前端已展示今日保存的记录内容。
+
 ## 5. Milestone 4：轻量 Life Agent
+
+Status: Done
 
 - 实现 `IntentRecognizer`。
 - 实现 `ActivityExtractor`。
@@ -89,7 +110,17 @@ Status: Next
 - Activity 有时长、Dimension、Domain / Topic。
 - 可以生成今日总结。
 
+完成记录：
+
+- 已显式实现 `IntentRecognizer`、`ActivityExtractor`、`LifeOntologyClassifier` 和 `InsightGenerator`。
+- 已增加可替换的 `LifeModelClient` 边界，第一版使用确定性规则实现，不需要外部 LLM 密钥。
+- 已支持数字、中文和模糊时长表达，并对估算结果标记 `estimated`。
+- 已实现 Agent 输出结构校验和温和失败提示。
+- Today 页已展示今日总结、Activity、Dimension 汇总和人生支出。
+
 ## 6. Milestone 5：今日人生账单
+
+Status: Next
 
 - 保存解析结果。
 - 计算 Dimension 汇总。

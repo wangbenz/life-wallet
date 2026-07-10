@@ -300,18 +300,18 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 ## 5. 当前正在进行
 
-当前已完成进入代码前的最小产品边界确认，并完成 Milestone 1 项目骨架。
+当前已完成 Milestone 1-4：项目骨架、人生账户、Today 记录和轻量 Life Agent。
 
-不要继续扩大 Product Discovery。下一步进入 Milestone 2：人生账户。
+不要继续扩大 Product Discovery。下一步进入 Milestone 5：今日人生账单持久化与 Life 页最近记录。
 
 ## 6. 下一步应该讨论
 
 下一步建议按顺序推进：
 
-1. Milestone 2：人生账户。
-2. 实现账户设置 API。
-3. 实现 Me 页生日和预期寿命设置。
-4. Today 页展示人生余额。
+1. Milestone 5：今日人生账单。
+2. 将账户、原始记录和 Agent 解析结果接入持久化。
+3. Life 页展示最近记录。
+4. 完成刷新后的账单恢复体验。
 
 ## 7. 新会话接手指令
 
@@ -336,4 +336,4 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 默认下一题：
 
-> 开始 Milestone 2：人生账户。
+> 开始 Milestone 5：今日人生账单。

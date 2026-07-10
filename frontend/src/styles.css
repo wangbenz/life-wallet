@@ -1,6 +1,6 @@
 :root {
-  color: #143527;
-  background: #f6faf7;
+  color: #15372a;
+  background: #eef6f1;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -12,16 +12,20 @@ body {
   margin: 0;
 }
 
+button,
+input {
+  font: inherit;
+}
+
 button {
   border: 0;
-  font: inherit;
 }
 
 .app-shell {
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 24px;
+  padding: 20px;
 }
 
 .phone-frame {
@@ -29,11 +33,14 @@ button {
   display: flex;
   width: min(100%, 390px);
   min-height: 760px;
+  max-height: 860px;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #dbe7df;
+  border: 1px solid #d7e7de;
   border-radius: 28px;
-  background: linear-gradient(155deg, #f9fffb 0%, #eef8f1 48%, #ffffff 100%);
+  background:
+    radial-gradient(circle at 18% 18%, rgb(79 154 102 / 16%), transparent 30%),
+    linear-gradient(155deg, #fbfffd 0%, #edf8f1 52%, #ffffff 100%);
   box-shadow: 0 18px 60px rgb(35 79 54 / 12%);
 }
 
@@ -41,27 +48,71 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 22px;
+  padding: 18px 22px 10px;
   color: #0b2418;
   font-size: 14px;
 }
 
-.balance-panel {
-  padding: 44px 28px 28px;
+.top-bar strong {
+  min-width: 80px;
   text-align: center;
+}
+
+.status-icons {
+  color: #111;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 92px;
+}
+
+.screen {
+  padding: 8px 22px 22px;
+}
+
+.balance-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 34px 24px 22px;
+  border: 1px solid #d9eadf;
+  border-radius: 22px;
+  background: rgb(255 255 255 / 72%);
+  text-align: center;
+  box-shadow: 0 12px 40px rgb(25 93 51 / 8%);
+}
+
+.mini-agent {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #8acb9c;
+  border-radius: 14px;
+  background: #e9f8ed;
+  color: #168342;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .eyebrow {
   margin: 0 0 10px;
-  color: #46755d;
+  color: #47755f;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .balance-panel h1 {
   margin: 0;
   color: #116333;
-  font-size: 56px;
+  font-size: 52px;
   letter-spacing: 0;
   line-height: 1;
 }
@@ -70,15 +121,54 @@ button {
   font-size: 18px;
 }
 
-.balance-panel p:last-child {
+.balance-panel p {
   margin: 14px 0 0;
   color: #5f7568;
+}
+
+.date-line {
+  margin-top: 6px !important;
+  font-size: 13px;
+}
+
+.balance-meta,
+.simple-list {
+  display: grid;
+  gap: 10px;
+}
+
+.balance-meta {
+  grid-template-columns: 1fr 1fr;
+  margin: 20px 0 0;
+}
+
+.balance-meta div,
+.simple-list div {
+  border: 1px solid #e0eee5;
+  border-radius: 14px;
+  background: #f7fcf8;
+  padding: 12px;
+}
+
+.balance-meta dt,
+.simple-list span {
+  color: #6f8377;
+  font-size: 12px;
+}
+
+.balance-meta dd,
+.simple-list strong {
+  display: block;
+  margin: 5px 0 0;
+  color: #15372a;
+  font-size: 16px;
+  font-weight: 900;
 }
 
 .agent-panel {
   display: flex;
   gap: 12px;
-  padding: 20px 24px;
+  padding: 18px 0 0;
 }
 
 .agent-avatar {
@@ -91,11 +181,16 @@ button {
   background: #1f8f4d;
   color: white;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .agent-bubble,
-.health-card {
+.action-card,
+.saved-record,
+.analysis-card,
+.system-card,
+.account-form,
+.simple-list {
   border: 1px solid #dfece4;
   border-radius: 18px;
   background: rgb(255 255 255 / 78%);
@@ -113,20 +208,410 @@ button {
   line-height: 1.7;
 }
 
-.health-card {
-  margin: 14px 24px 90px;
+.agent-bubble time,
+.user-bubble time {
+  display: block;
+  margin-top: 8px;
+  color: #8a9b91;
+  font-size: 11px;
+  text-align: right;
+}
+
+.agent-bubble.muted {
+  color: #284537;
+}
+
+.quick-record {
+  margin-top: 18px;
+}
+
+.quick-record p {
+  margin: 0 0 10px;
+  color: #6b7f74;
+  font-size: 13px;
+}
+
+.quick-record div {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.quick-record span {
+  flex: 0 0 auto;
+  border: 1px solid #dfece4;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 82%);
+  color: #203b2d;
+  font-size: 13px;
+  padding: 9px 14px;
+}
+
+.user-bubble {
+  width: fit-content;
+  max-width: 76%;
+  margin: 16px 0 0 auto;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ccefd2, #e7f8e9);
+  color: #15372a;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgb(36 147 79 / 14%);
+}
+
+.user-bubble p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.action-card,
+.saved-record,
+.analysis-card,
+.system-card,
+.account-form,
+.simple-list {
+  margin-top: 16px;
   padding: 18px;
 }
 
-.health-card h2 {
+.action-card h2,
+.health-card h2,
+.page-heading h1 {
   margin: 0 0 10px;
-  font-size: 18px;
 }
 
-.health-card p:last-child {
-  margin: 0;
+.action-card p,
+.system-card p,
+.page-heading p,
+.form-message {
   color: #5d7767;
   line-height: 1.6;
+}
+
+.system-card {
+  margin-top: 14px;
+  padding: 12px 14px;
+  box-shadow: none;
+}
+
+.system-card p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.saved-record {
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.saved-record p {
+  margin: 0;
+  color: #173829;
+  line-height: 1.7;
+}
+
+.saved-record span {
+  display: block;
+  margin-top: 10px;
+  color: #6f8377;
+  font-size: 12px;
+}
+
+.analysis-card {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.analysis-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.agent-avatar.small {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+  font-size: 11px;
+}
+
+.analysis-heading > div:last-child {
+  min-width: 0;
+  flex: 1;
+}
+
+.analysis-heading p {
+  margin: 0;
+  color: #173829;
+  line-height: 1.65;
+}
+
+.analysis-heading .eyebrow {
+  margin-bottom: 5px;
+  color: #47755f;
+}
+
+.dimension-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.dimension-list div {
+  min-width: 122px;
+  border-radius: 12px;
+  background: #e7f6eb;
+  padding: 11px 12px;
+}
+
+.dimension-list span,
+.dimension-list strong {
+  display: block;
+}
+
+.dimension-list span {
+  color: #178044;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.dimension-list strong {
+  margin-top: 4px;
+  color: #15372a;
+  font-size: 13px;
+}
+
+.activity-list {
+  display: grid;
+  gap: 0;
+  margin-top: 14px;
+  border-top: 1px solid #e5eee8;
+}
+
+.activity-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #e5eee8;
+}
+
+.activity-list strong,
+.activity-list span {
+  display: block;
+}
+
+.activity-list strong {
+  color: #173829;
+  font-size: 14px;
+}
+
+.activity-list span,
+.activity-list p,
+.confirmation-note {
+  color: #718278;
+  font-size: 12px;
+}
+
+.activity-list span {
+  margin-top: 4px;
+}
+
+.activity-list p {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.confirmation-note {
+  margin: 12px 0 0;
+}
+
+.composer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  border: 1px solid #dce9e1;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 92%);
+  color: #9aa69f;
+  padding: 9px 9px 9px 16px;
+  box-shadow: 0 10px 30px rgb(25 93 51 / 10%);
+}
+
+.composer span {
+  flex: 1;
+  font-size: 14px;
+}
+
+.composer input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #173829;
+  outline: 0;
+}
+
+.composer input::placeholder {
+  color: #9aa69f;
+}
+
+.composer p {
+  width: 100%;
+  margin: -2px 42px 0 0;
+  color: #6f8377;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.composer button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  background: #a7dfb1;
+  color: #116333;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.primary-action {
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: #24934f;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 13px 16px;
+  box-shadow: 0 10px 24px rgb(36 147 79 / 22%);
+}
+
+.primary-action:focus-visible,
+.tab-bar button:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgb(36 147 79 / 35%);
+  outline-offset: 2px;
+}
+
+.page-heading {
+  padding: 26px 4px 6px;
+}
+
+.page-heading h1 {
+  color: #103524;
+  font-size: 30px;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  border-radius: 999px;
+  background: #f5f7f5;
+  padding: 4px;
+}
+
+.segmented button {
+  border-radius: 999px;
+  background: transparent;
+  color: #2d3c34;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 10px 6px;
+}
+
+.segmented .active {
+  background: #dff3e5;
+  color: #148041;
+  font-weight: 900;
+}
+
+.life-balance-card {
+  margin-top: 14px;
+  border: 1px solid #dfece4;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 78%);
+  box-shadow: 0 8px 30px rgb(25 93 51 / 8%);
+  padding: 18px;
+}
+
+.life-balance-card div {
+  display: grid;
+  grid-template-columns: 1fr 150px;
+  align-items: center;
+  gap: 10px;
+}
+
+.life-balance-card strong {
+  color: #111;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.life-balance-card strong span {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.life-balance-card p:last-child {
+  margin: 0;
+  color: #6f8377;
+  font-size: 13px;
+}
+
+.life-balance-card svg {
+  width: 100%;
+  height: auto;
+}
+
+.life-balance-card polyline {
+  fill: none;
+  stroke: #36a360;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.life-balance-card circle {
+  fill: #36a360;
+}
+
+.account-form {
+  display: grid;
+  gap: 16px;
+}
+
+.account-form label {
+  display: grid;
+  gap: 8px;
+  color: #426a55;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.account-form input {
+  width: 100%;
+  border: 1px solid #d8e8df;
+  border-radius: 14px;
+  background: #f9fffb;
+  color: #15372a;
+  padding: 13px 14px;
+}
+
+.form-message {
+  min-height: 22px;
+  margin: 0;
+  font-size: 13px;
 }
 
 .tab-bar {
@@ -139,19 +624,33 @@ button {
   gap: 8px;
   padding: 12px 18px 18px;
   border-top: 1px solid #e2ede6;
-  background: rgb(255 255 255 / 88%);
+  background: rgb(255 255 255 / 90%);
+  backdrop-filter: blur(16px);
 }
 
 .tab-bar button {
   border-radius: 999px;
   background: transparent;
   color: #557262;
-  cursor: default;
+  cursor: pointer;
   padding: 10px;
 }
 
 .tab-bar .active {
   background: #dff3e5;
   color: #148041;
-  font-weight: 800;
+  font-weight: 900;
+}
+
+@media (max-width: 430px) {
+  .app-shell {
+    padding: 0;
+  }
+
+  .phone-frame {
+    width: 100%;
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
 }

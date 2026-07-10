@@ -66,10 +66,16 @@ Request:
 
 Response:
 
+Milestone 3 的最小保存响应已被 Milestone 4 的解析响应替代。当前响应为：
+
 ```json
 {
   "recordId": 1001,
   "lifeDate": "2026-07-09",
+  "content": "今天上午修 bug，下午开会，晚上学了 40 分钟英语，有点累。",
+  "status": "ANALYZED",
+  "createdAt": "2026-07-09T22:05:00Z",
+  "intent": "RECORD_TODAY",
   "summary": "今天主要投入在工作和成长上，状态略有疲惫。",
   "activities": [
     {
@@ -91,6 +97,8 @@ Response:
   "needsConfirmation": true
 }
 ```
+
+当前解析由可替换的规则版 `LifeModelClient` 实现，用于在不依赖外部密钥的情况下跑通 Agent 工作流。后续接入 LLM 时保持 API 响应结构不变。
 
 ### 获取今日记录
 

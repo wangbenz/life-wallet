@@ -317,6 +317,70 @@ button {
   font-size: 12px;
 }
 
+.recent-records {
+  margin-top: 16px;
+}
+
+.section-heading,
+.recent-record-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #15372a;
+  font-size: 17px;
+}
+
+.section-heading > span {
+  color: #6f8377;
+  font-size: 12px;
+}
+
+.recent-empty,
+.recent-record-list article {
+  border: 1px solid #dfece4;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 78%);
+}
+
+.recent-empty {
+  margin: 12px 0 0;
+  padding: 16px;
+  color: #5d7767;
+  line-height: 1.6;
+}
+
+.recent-record-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.recent-record-list article {
+  padding: 15px;
+}
+
+.recent-record-heading strong {
+  color: #15372a;
+  font-size: 14px;
+}
+
+.recent-record-heading span,
+.recent-record-list small {
+  color: #6f8377;
+  font-size: 12px;
+}
+
+.recent-record-list article p {
+  margin: 10px 0 7px;
+  color: #284537;
+  line-height: 1.55;
+}
+
 .analysis-card {
   margin-top: 16px;
   padding: 18px;

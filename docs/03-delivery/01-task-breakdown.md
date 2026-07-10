@@ -120,7 +120,7 @@ Status: Done
 
 ## 6. Milestone 5：今日人生账单
 
-Status: Next
+Status: Done
 
 - 保存解析结果。
 - 计算 Dimension 汇总。
@@ -132,6 +132,13 @@ Status: Next
 
 - 用户提交记录后，可以看到今日人生账单。
 - 刷新页面后记录仍存在。
+
+完成记录：
+
+- 后端已保存每条记录对应的 Agent 解析结果，并提供 `GET /api/life/recent-records` 返回最近 10 条记录。
+- Life 页已展示最近记录的日期、Agent 总结、主要维度和 Activity 数量。
+- 前端启动时会重新读取 Today 记录和最近记录；提交新记录后会立即同步到 Life 页。
+- 当前 Demo 使用进程内存存储，浏览器刷新可恢复记录；服务重启后的长期持久化留待测试环境引入 MySQL 时完成。
 
 ## 7. Milestone 6：反馈与测试环境
 

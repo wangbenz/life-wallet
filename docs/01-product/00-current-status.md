@@ -300,18 +300,18 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 ## 5. 当前正在进行
 
-当前已完成 Milestone 1-4：项目骨架、人生账户、Today 记录和轻量 Life Agent。
+当前已完成 Milestone 1-5：项目骨架、人生账户、Today 记录、轻量 Life Agent 和今日人生账单。
 
-不要继续扩大 Product Discovery。下一步进入 Milestone 5：今日人生账单持久化与 Life 页最近记录。
+不要继续扩大 Product Discovery。下一步进入 Milestone 6：反馈与测试环境。
 
 ## 6. 下一步应该讨论
 
 下一步建议按顺序推进：
 
-1. Milestone 5：今日人生账单。
-2. 将账户、原始记录和 Agent 解析结果接入持久化。
-3. Life 页展示最近记录。
-4. 完成刷新后的账单恢复体验。
+1. Milestone 6：用户反馈。
+2. 保存“准确 / 一般 / 不准”反馈并在 Today 页提供入口。
+3. 增加基础错误处理。
+4. 准备 H5 Demo 测试环境部署方式。
 
 ## 7. 新会话接手指令
 
@@ -336,4 +336,4 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 默认下一题：
 
-> 开始 Milestone 5：今日人生账单。
+> 开始 Milestone 6：反馈与测试环境。

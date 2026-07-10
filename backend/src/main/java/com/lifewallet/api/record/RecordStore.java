@@ -43,4 +43,14 @@ public class RecordStore {
                 .max(Comparator.comparing(RecordState::createdAt)
                         .thenComparing(RecordState::recordId));
     }
+
+    public synchronized List<RecordState> findRecent(int limit) {
+        // Life 页只需要轻量回看最近记录；按创建时间倒序，方便用户看到最新的人生账单。
+        return records.stream()
+                .sorted(Comparator.comparing(RecordState::createdAt)
+                        .thenComparing(RecordState::recordId)
+                        .reversed())
+                .limit(limit)
+                .toList();
+    }
 }

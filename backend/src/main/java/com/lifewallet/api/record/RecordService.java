@@ -3,6 +3,7 @@ package com.lifewallet.api.record;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,12 @@ public class RecordService {
         return recordStore.findLatestByLifeDate(today)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ApiException("TODAY_RECORD_NOT_FOUND", "今天还没有记录。"));
+    }
+
+    public List<RecordResponse> getRecentRecords() {
+        return recordStore.findRecent(10).stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     private RecordResponse toResponse(RecordState record) {

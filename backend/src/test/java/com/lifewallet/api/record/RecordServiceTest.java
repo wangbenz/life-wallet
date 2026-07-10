@@ -64,6 +64,18 @@ class RecordServiceTest {
     }
 
     @Test
+    void returnsRecentRecordsWithNewestFirst() {
+        RecordService service = new RecordService(new RecordStore(), stubAgent(), FIXED_CLOCK);
+
+        RecordResponse first = service.createRecord(new RecordRequest(LocalDate.parse("2026-07-09"), "昨天的记录"));
+        RecordResponse second = service.createRecord(new RecordRequest(LocalDate.parse("2026-07-10"), "今天的记录"));
+
+        assertThat(service.getRecentRecords())
+                .extracting(RecordResponse::recordId)
+                .containsExactly(second.recordId(), first.recordId());
+    }
+
+    @Test
     void returnsFriendlyErrorWhenAgentFails() {
         LifeModelClient failingAgent = content -> {
             throw new IllegalStateException("invalid model output");

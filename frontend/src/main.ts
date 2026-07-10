@@ -57,6 +57,7 @@ const appRoot = app;
 let activeTab: Tab = 'today';
 let account: Account | null = readAccount();
 let todayRecord: TodayRecord | null = null;
+let recentRecords: TodayRecord[] = [];
 let healthText = '正在连接后端...';
 let formMessage = '';
 let recordMessage = '';
@@ -361,8 +362,45 @@ function renderLife() {
           <strong>${formatNumber(account?.remainingLifeDays)} 天</strong>
         </div>
       </section>
+
+      <section class="recent-records">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">最近记录</p>
+            <h2>回看最近的人生账单</h2>
+          </div>
+          <span>${recentRecords.length} 条</span>
+        </div>
+        ${renderRecentRecords()}
+      </section>
     </section>
   `;
+}
+
+function renderRecentRecords() {
+  if (recentRecords.length === 0) {
+    return '<p class="recent-empty">还没有可回看的记录。先在 Today 告诉我今天发生了什么吧。</p>';
+  }
+
+  return `
+    <div class="recent-record-list">
+      ${recentRecords.map((record) => `
+        <article>
+          <div class="recent-record-heading">
+            <strong>${formatLifeDate(record.lifeDate)}</strong>
+            <span>${record.dimensionSummary.map((item) => escapeHtml(item.dimension)).join(' · ') || '人生记录'}</span>
+          </div>
+          <p>${escapeHtml(record.summary)}</p>
+          <small>${record.activities.length} 个生活片段 · ${record.dimensionSummary.map((item) => `${item.lifeCoinAmount.toFixed(2)} 元`).join(' / ')}</small>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function formatLifeDate(value: string) {
+  return new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })
+    .format(new Date(`${value}T00:00:00`));
 }
 
 function renderMe() {
@@ -481,6 +519,22 @@ async function loadTodayRecord() {
   render();
 }
 
+async function loadRecentRecords() {
+  try {
+    const response = await fetch('/api/life/recent-records');
+
+    if (!response.ok) {
+      return;
+    }
+
+    recentRecords = (await response.json()) as TodayRecord[];
+  } catch (error) {
+    console.error(error);
+  }
+
+  render();
+}
+
 async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYears'>) {
   // 保存账户成功后直接回到 Today，让用户马上看到人生余额并开始记录。
   formMessage = '正在保存...';
@@ -536,6 +590,8 @@ async function saveTodayRecord(content: string) {
     }
 
     todayRecord = body as TodayRecord;
+    // 同步刷新 Life 页的轻量历史，让本次账单立刻可回看。
+    recentRecords = [todayRecord, ...recentRecords.filter((record) => record.recordId !== todayRecord?.recordId)];
     recordDraft = '';
     recordMessage = body.needsConfirmation ? 'AI 已完成初步理解，请检查估算结果。' : 'AI 已完成理解。';
   } catch (error) {
@@ -549,3 +605,4 @@ render();
 void loadHealth();
 void loadAccount();
 void loadTodayRecord();
+void loadRecentRecords();

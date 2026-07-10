@@ -1,6 +1,5 @@
 :root {
   color: #15372a;
-  background: #eef6f1;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -10,6 +9,7 @@
 
 body {
   margin: 0;
+  background: #eef6f1;
 }
 
 button,
@@ -22,56 +22,22 @@ button {
 }
 
 .app-shell {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  padding: 20px;
-}
-
-.phone-frame {
-  position: relative;
   display: flex;
-  width: min(100%, 390px);
-  min-height: 760px;
-  max-height: 860px;
+  min-height: 100vh;
   flex-direction: column;
-  overflow: hidden;
-  border: 1px solid #d7e7de;
-  border-radius: 28px;
   background:
     radial-gradient(circle at 18% 18%, rgb(79 154 102 / 16%), transparent 30%),
     linear-gradient(155deg, #fbfffd 0%, #edf8f1 52%, #ffffff 100%);
-  box-shadow: 0 18px 60px rgb(35 79 54 / 12%);
-}
-
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px 10px;
-  color: #0b2418;
-  font-size: 14px;
-}
-
-.top-bar strong {
-  min-width: 80px;
-  text-align: center;
-}
-
-.status-icons {
-  color: #111;
-  font-size: 11px;
-  letter-spacing: 1px;
 }
 
 .content-scroll {
   flex: 1;
-  overflow-y: auto;
-  padding-bottom: 92px;
 }
 
 .screen {
-  padding: 8px 22px 22px;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 24px 22px;
 }
 
 .balance-panel {
@@ -83,23 +49,6 @@ button {
   background: rgb(255 255 255 / 72%);
   text-align: center;
   box-shadow: 0 12px 40px rgb(25 93 51 / 8%);
-}
-
-.mini-agent {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid #8acb9c;
-  border-radius: 14px;
-  background: #e9f8ed;
-  color: #168342;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 900;
 }
 
 .eyebrow {
@@ -185,10 +134,8 @@ button {
 }
 
 .agent-bubble,
-.action-card,
 .saved-record,
 .analysis-card,
-.system-card,
 .account-form,
 .simple-list {
   border: 1px solid #dfece4;
@@ -206,15 +153,6 @@ button {
 .agent-bubble p {
   margin: 0;
   line-height: 1.7;
-}
-
-.agent-bubble time,
-.user-bubble time {
-  display: block;
-  margin-top: 8px;
-  color: #8a9b91;
-  font-size: 11px;
-  text-align: right;
 }
 
 .agent-bubble.muted {
@@ -238,12 +176,13 @@ button {
   padding-bottom: 2px;
 }
 
-.quick-record span {
+.quick-record button {
   flex: 0 0 auto;
   border: 1px solid #dfece4;
   border-radius: 999px;
   background: rgb(255 255 255 / 82%);
   color: #203b2d;
+  cursor: pointer;
   font-size: 13px;
   padding: 9px 14px;
 }
@@ -264,39 +203,22 @@ button {
   line-height: 1.7;
 }
 
-.action-card,
 .saved-record,
 .analysis-card,
-.system-card,
 .account-form,
 .simple-list {
   margin-top: 16px;
   padding: 18px;
 }
 
-.action-card h2,
-.health-card h2,
 .page-heading h1 {
   margin: 0 0 10px;
 }
 
-.action-card p,
-.system-card p,
 .page-heading p,
 .form-message {
   color: #5d7767;
   line-height: 1.6;
-}
-
-.system-card {
-  margin-top: 14px;
-  padding: 12px 14px;
-  box-shadow: none;
-}
-
-.system-card p {
-  margin: 0;
-  font-size: 12px;
 }
 
 .saved-record {
@@ -679,10 +601,8 @@ input:focus-visible {
 }
 
 .tab-bar {
-  position: absolute;
-  right: 0;
+  position: sticky;
   bottom: 0;
-  left: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
@@ -704,17 +624,4 @@ input:focus-visible {
   background: #dff3e5;
   color: #148041;
   font-weight: 900;
-}
-
-@media (max-width: 430px) {
-  .app-shell {
-    padding: 0;
-  }
-
-  .phone-frame {
-    width: 100%;
-    min-height: 100vh;
-    border: 0;
-    border-radius: 0;
-  }
 }

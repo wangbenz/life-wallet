@@ -9,11 +9,6 @@ type Account = {
   remainingLifeDays: number;
 };
 
-type HealthResponse = {
-  status: string;
-  service: string;
-};
-
 type TodayRecord = {
   recordId: number;
   lifeDate: string;
@@ -58,7 +53,6 @@ let activeTab: Tab = 'today';
 let account: Account | null = readAccount();
 let todayRecord: TodayRecord | null = null;
 let recentRecords: TodayRecord[] = [];
-let healthText = '正在连接后端...';
 let formMessage = '';
 let recordMessage = '';
 let recordDraft = '';
@@ -118,25 +112,17 @@ function render() {
   // 每次 render 后重新绑定事件，保持实现简单可读。
   appRoot.innerHTML = `
     <main class="app-shell">
-      <section class="phone-frame">
-        <header class="top-bar">
-          <span>9:41</span>
-          <strong>${activeTab === 'today' ? '' : activeTab === 'life' ? '人生' : '我的'}</strong>
-          <span class="status-icons" aria-hidden="true">▴ ● ▬</span>
-        </header>
+      <div class="content-scroll">
+        ${renderToday()}
+        ${renderLife()}
+        ${renderMe()}
+      </div>
 
-        <div class="content-scroll">
-          ${renderToday()}
-          ${renderLife()}
-          ${renderMe()}
-        </div>
-
-        <nav class="tab-bar" aria-label="主导航">
-          <button data-tab="today" class="${activeTab === 'today' ? 'active' : ''}">Today</button>
-          <button data-tab="life" class="${activeTab === 'life' ? 'active' : ''}">Life</button>
-          <button data-tab="me" class="${activeTab === 'me' ? 'active' : ''}">Me</button>
-        </nav>
-      </section>
+      <nav class="tab-bar" aria-label="主导航">
+        <button data-tab="today" class="${activeTab === 'today' ? 'active' : ''}">Today</button>
+        <button data-tab="life" class="${activeTab === 'life' ? 'active' : ''}">Life</button>
+        <button data-tab="me" class="${activeTab === 'me' ? 'active' : ''}">Me</button>
+      </nav>
     </main>
   `;
 
@@ -163,7 +149,6 @@ function renderToday() {
   return `
     <section class="screen today-screen">
       <section class="balance-panel">
-        <button class="mini-agent" aria-label="AI 助手">AI</button>
         <p class="eyebrow">人生余额</p>
         <h1>${remaining}<span> 元</span></h1>
         <p>今天也会花掉 1 元人生</p>
@@ -185,39 +170,32 @@ function renderToday() {
         <div class="agent-bubble">
           <p>嗨，我是你的人生助手</p>
           <p>今天这一元，花去哪了？</p>
-          <time>09:30</time>
         </div>
       </section>
 
       <section class="quick-record">
         <p>快速记录</p>
         <div>
-          <span>工作</span>
-          <span>学习</span>
-          <span>生活</span>
-          <span>放松</span>
-          <span>其他</span>
+          <button type="button" data-quick-record="工作">工作</button>
+          <button type="button" data-quick-record="学习">学习</button>
+          <button type="button" data-quick-record="生活">生活</button>
+          <button type="button" data-quick-record="放松">放松</button>
+          <button type="button" data-quick-record="其他">其他</button>
         </div>
       </section>
 
       <section class="user-bubble">
         <p>${account ? `我出生于 ${birthday}，预期寿命 ${expectedLifeYears}。` : '我还没有设置人生账户。'}</p>
-        <time>09:32 ✓✓</time>
       </section>
 
       <section class="agent-panel">
         <div class="agent-avatar">AI</div>
         <div class="agent-bubble muted">
           <p>${account ? renderAgentRecordPrompt() : '先去我的页设置生日和预期寿命，我会帮你计算人生余额。'}</p>
-          <time>09:33</time>
         </div>
       </section>
 
       ${renderTodayRecord()}
-
-      <section class="system-card">
-        <p>${healthText}</p>
-      </section>
 
       ${renderComposer()}
     </section>
@@ -447,6 +425,15 @@ function bindEvents() {
     });
   });
 
+  document.querySelectorAll<HTMLButtonElement>('[data-quick-record]').forEach((button) => {
+    button.addEventListener('click', () => {
+      // 快捷标签只降低输入门槛，不替用户决定分类；用户仍可直接补充完整自然语言记录。
+      recordDraft = button.dataset.quickRecord ?? '';
+      render();
+      document.querySelector<HTMLInputElement>('#record-form input[name="content"]')?.focus();
+    });
+  });
+
   document.querySelector<HTMLFormElement>('#account-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -467,24 +454,6 @@ function bindEvents() {
 
     await saveTodayRecord(content);
   });
-}
-
-async function loadHealth() {
-  try {
-    const response = await fetch('/api/health');
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const data = (await response.json()) as HealthResponse;
-    healthText = `${data.service}: ${data.status}`;
-  } catch (error) {
-    healthText = '后端暂未连接，请确认 Spring Boot 已启动。';
-    console.error(error);
-  }
-
-  render();
 }
 
 async function loadAccount() {
@@ -602,7 +571,6 @@ async function saveTodayRecord(content: string) {
 }
 
 render();
-void loadHealth();
 void loadAccount();
 void loadTodayRecord();
 void loadRecentRecords();

@@ -62,6 +62,8 @@ let formMessage = '';
 let recordMessage = '';
 let recordDraft = '';
 
+// 前端第一版先用很轻的全局状态驱动页面，便于快速验证 Today / Life / Me 三个 Tab。
+// 后续如果页面复杂起来，再考虑引入正式状态管理。
 function formatNumber(value: number | null | undefined) {
   if (value === null || value === undefined) {
     return '--';
@@ -71,6 +73,7 @@ function formatNumber(value: number | null | undefined) {
 }
 
 function escapeHtml(value: string) {
+  // 用户记录会原样展示在页面上，必须先转义，避免输入内容被当成 HTML 执行。
   return value
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -89,6 +92,7 @@ function getTodayDateValue() {
 }
 
 function readAccount() {
+  // 后端当前还是内存存储，前端也缓存一份账户信息，让刷新后的体验更连续。
   const raw = localStorage.getItem(accountStorageKey);
 
   if (!raw) {
@@ -109,6 +113,8 @@ function persistAccount(nextAccount: Account) {
 }
 
 function render() {
+  // 这个 Demo 用模板字符串直接渲染整屏，优势是改 UI 很快；
+  // 每次 render 后重新绑定事件，保持实现简单可读。
   appRoot.innerHTML = `
     <main class="app-shell">
       <section class="phone-frame">
@@ -152,6 +158,7 @@ function renderToday() {
     weekday: 'short',
   }).format(new Date());
 
+  // Today 是 Agent First 的首页：先展示人生余额，再让用户直接和 Agent 记录今天。
   return `
     <section class="screen today-screen">
       <section class="balance-panel">
@@ -231,6 +238,8 @@ function renderTodayRecord() {
     return '';
   }
 
+  // AI 理解结果分三块展示：一句总结、维度汇总、具体 Activity。
+  // 这对应后端 AgentAnalysis 的结构，也方便用户检查“像不像我的一天”。
   return `
     <section class="saved-record">
       <p class="eyebrow">今日记录</p>
@@ -391,6 +400,7 @@ function renderMe() {
 }
 
 function bindEvents() {
+  // 页面是整屏重渲染，所以所有事件绑定都集中在这里，避免散落在各个 render 函数里。
   document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((button) => {
     button.addEventListener('click', () => {
       activeTab = button.dataset.tab as Tab;
@@ -472,6 +482,7 @@ async function loadTodayRecord() {
 }
 
 async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYears'>) {
+  // 保存账户成功后直接回到 Today，让用户马上看到人生余额并开始记录。
   formMessage = '正在保存...';
   render();
 
@@ -501,6 +512,7 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
 }
 
 async function saveTodayRecord(content: string) {
+  // 提交记录后，后端会同步完成 Agent 解析并返回今日人生账单。
   recordDraft = content;
   recordMessage = '正在保存记录...';
   render();

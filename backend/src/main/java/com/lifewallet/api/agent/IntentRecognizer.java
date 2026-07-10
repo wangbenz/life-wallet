@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 public class IntentRecognizer {
 
     public String recognize(String content) {
+        // 第一版意图只分三类：修改记录、查看总结、记录今天。
+        // 默认落到 RECORD_TODAY，是为了让用户自然输入时不需要学习命令格式。
         if (containsAny(content, "改一下", "修改", "更正", "重新解析")) {
             return "MODIFY_RECORD";
         }

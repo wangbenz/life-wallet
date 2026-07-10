@@ -8,12 +8,14 @@ import org.springframework.stereotype.Component;
 public class InsightGenerator {
 
     public String generate(List<DimensionSummary> summaries, String originalContent) {
+        // 先取占比最高的两个维度生成一句温和总结，避免第一版输出太复杂或太说教。
         String dimensions = summaries.stream()
                 .limit(2)
                 .map(DimensionSummary::dimension)
                 .reduce((first, second) -> first + "和" + second)
                 .orElse("生活");
 
+        // 如果用户记录里出现疲惫、焦虑等状态词，反馈里轻轻承接一下情绪。
         String state = containsAny(originalContent, "累", "疲惫", "焦虑", "低落")
                 ? "，也留意到了你今天有些疲惫"
                 : "";

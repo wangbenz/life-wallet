@@ -53,6 +53,9 @@ public class AccountService {
     private AccountResponse toResponse(AccountState account) {
         LocalDate today = LocalDate.now(clock);
         LocalDate expectedEndDate = account.birthday().plusYears(account.expectedLifeYears());
+
+        // 人生账户的核心换算：预期寿命转成总天数，再用今天扣减出已消耗和剩余天数。
+        // 这里暂时按“天”计算，保持第一版 H5 Demo 的世界观简单直观。
         long totalLifeDays = ChronoUnit.DAYS.between(account.birthday(), expectedEndDate);
         long usedLifeDays = Math.max(0, ChronoUnit.DAYS.between(account.birthday(), today));
         long remainingLifeDays = Math.max(0, totalLifeDays - usedLifeDays);

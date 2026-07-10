@@ -8,6 +8,8 @@ public class LifeOntologyClassifier {
     public AgentActivity classify(ExtractedActivity activity) {
         String title = activity.title();
 
+        // 这里先用关键词做确定性分类，保证没有外部 AI Key 时也能跑通完整 Agent 流程。
+        // 后续接入 LLM 后，可以保留这些规则作为兜底或测试基准。
         if (containsAny(title, "学习", "英语", "读书", "阅读", "课程", "练习", "Java")) {
             return activity(activity, "成长", "学习");
         }

@@ -30,6 +30,9 @@ public class LightweightLifeAgent implements LifeModelClient {
 
     @Override
     public AgentAnalysis analyze(String content) {
+        // 第一版轻量 Agent 的主流程刻意显式展开：
+        // 先识别意图，再抽取活动，再归类到人生维度，最后生成总结和确认提示。
+        // 这样后续接入 LLM 或 LangChain4j 时，也能清楚知道每一步替换的位置。
         String intent = intentRecognizer.recognize(content);
         List<AgentActivity> activities = activityExtractor.extract(content).stream()
                 .map(classifier::classify)
@@ -55,6 +58,7 @@ public class LightweightLifeAgent implements LifeModelClient {
                 .map(entry -> new DimensionSummary(
                         entry.getKey(),
                         entry.getValue(),
+                        // 1 天 = 1 元人生，所以某维度支出 = 分钟数 / 1440。
                         BigDecimal.valueOf(entry.getValue())
                                 .divide(BigDecimal.valueOf(1440), 2, RoundingMode.HALF_UP)
                 ))
@@ -62,6 +66,8 @@ public class LightweightLifeAgent implements LifeModelClient {
     }
 
     private void validate(List<AgentActivity> activities) {
+        // 这里是 Agent 输出的最小结构校验，避免前端收到空标题、空维度或无效时长。
+        // 后续接入真实 LLM 后，这一层会更重要，因为模型输出需要被代码兜住。
         if (activities.isEmpty() || activities.stream().anyMatch(activity ->
                 activity.title().isBlank()
                         || activity.durationMinutes() <= 0

@@ -32,6 +32,7 @@ public class RecordService {
     public RecordResponse createRecord(RecordRequest request) {
         LocalDate today = LocalDate.now(clock);
 
+        // 记录日期不能超过今天，避免用户误提交未来账单。
         if (request.lifeDate().isAfter(today)) {
             throw new ApiException("INVALID_LIFE_DATE", "记录日期不能晚于今天。");
         }
@@ -39,8 +40,10 @@ public class RecordService {
         String content = request.content().trim();
         AgentAnalysis analysis;
         try {
+            // 当前 LifeModelClient 由轻量规则 Agent 实现；后续可以替换为真实 LLM 调用。
             analysis = lifeModelClient.analyze(content);
         } catch (RuntimeException exception) {
+            // Agent 失败时不把内部异常暴露给前端，统一返回用户能理解的温和提示。
             throw new ApiException("AGENT_PARSE_FAILED", "这次没有理解成功，可以稍后再试，或把记录写得更具体一点。");
         }
 

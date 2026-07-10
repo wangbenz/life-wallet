@@ -57,6 +57,8 @@ Do not build the full WeChat Mini Program yet. Implement only the first H5 Agent
 - Prefer simple implementation over over-engineering.
 - Explain tradeoffs when there are multiple options.
 - When updating `AGENTS.md`, also check and update `CLAUDE.md` so agent instructions stay synchronized.
+- Write clear Chinese comments for important frontend and backend code paths so the project owner can understand the implementation.
+- Comments should explain business intent, Agent workflow, data flow, validation, and non-obvious decisions; avoid noisy line-by-line comments for self-explanatory code.
 - Run relevant tests after changes.
 - Summarize changed files and test results.
 

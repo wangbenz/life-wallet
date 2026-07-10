@@ -18,6 +18,8 @@ public class ActivityExtractor {
     public List<ExtractedActivity> extract(String content) {
         List<ExtractedActivity> activities = new ArrayList<>();
 
+        // 第一版先用标点把一天拆成多个生活片段。
+        // 这不是最终 NLP 方案，但足够支撑“短平快”的 Demo 验证。
         for (String rawClause : content.split("[，,。；;！!？?、\\n]+")) {
             String clause = rawClause.trim();
             if (clause.isBlank() || isOnlyState(clause)) {
@@ -32,6 +34,7 @@ public class ActivityExtractor {
         }
 
         if (activities.isEmpty()) {
+            // 如果用户只写了一句很模糊的话，也保留为一个估算活动，避免记录完全丢失。
             activities.add(new ExtractedActivity(normalizeTitle(content), 60, true));
         }
         return List.copyOf(activities);
@@ -39,6 +42,7 @@ public class ActivityExtractor {
 
     private Duration extractDuration(String clause) {
         if (clause.contains("两三个小时")) {
+            // “两三个小时”按 2.5 小时估算，并标记为 estimated，前端会提醒用户确认。
             return new Duration(150, true);
         }
 
@@ -71,6 +75,7 @@ public class ActivityExtractor {
     }
 
     private String normalizeTitle(String clause) {
+        // 标题只保留用户真正做了什么，去掉时间、时长和语气词，便于展示和分类。
         String title = TIME_PREFIX.matcher(clause).replaceFirst("");
         title = NUMBER_DURATION.matcher(title).replaceAll("");
         title = CHINESE_HOUR_DURATION.matcher(title).replaceAll("");

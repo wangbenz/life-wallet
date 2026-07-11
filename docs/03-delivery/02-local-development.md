@@ -50,7 +50,7 @@ Frontend URL:
 http://127.0.0.1:5173
 ```
 
-The Vite dev server proxies `/api` requests to `http://127.0.0.1:8080`.
+当前前端处于 Mock UI 调试阶段，所有账户、记录与解析预览数据均来自 `frontend/src/mock/data.ts`，不需要启动后端，也不配置 Vite 代理。
 
 Build:
 
@@ -59,10 +59,10 @@ cd frontend
 pnpm build
 ```
 
-Proxy verification:
+前端验证：
 
 ```bash
-curl http://127.0.0.1:5173/api/health
+pnpm build
 ```
 
 ## 4. Database

@@ -1,41 +1,15 @@
 import './styles.css';
-
-type Account = {
-  accountId: number;
-  birthday: string;
-  expectedLifeYears: number;
-  totalLifeDays: number;
-  usedLifeDays: number;
-  remainingLifeDays: number;
-};
-
-type TodayRecord = {
-  recordId: number;
-  lifeDate: string;
-  content: string;
-  status: string;
-  createdAt: string;
-  intent: string;
-  summary: string;
-  activities: AgentActivity[];
-  dimensionSummary: DimensionSummary[];
-  needsConfirmation: boolean;
-};
-
-type AgentActivity = {
-  title: string;
-  durationMinutes: number;
-  dimension: string;
-  domain: string;
-  topic: string;
-  estimated: boolean;
-};
-
-type DimensionSummary = {
-  dimension: string;
-  durationMinutes: number;
-  lifeCoinAmount: number;
-};
+import {
+  confirmMockRecord,
+  getMockAccount,
+  getMockRecentRecords,
+  getMockTodayRecord,
+  previewMockRecord,
+  saveMockAccount,
+  type Account,
+  type RecordPreview,
+  type TodayRecord,
+} from './mock/data';
 
 type Tab = 'today' | 'life' | 'me';
 
@@ -53,6 +27,9 @@ let activeTab: Tab = 'today';
 let account: Account | null = readAccount();
 let todayRecord: TodayRecord | null = null;
 let recentRecords: TodayRecord[] = [];
+let recordPreview: RecordPreview | null = null;
+let isAnalyzingRecord = false;
+let isWorldviewExpanded = false;
 let formMessage = '';
 let recordMessage = '';
 let recordDraft = '';
@@ -119,9 +96,9 @@ function render() {
       </div>
 
       <nav class="tab-bar" aria-label="主导航">
-        <button data-tab="today" class="${activeTab === 'today' ? 'active' : ''}">Today</button>
-        <button data-tab="life" class="${activeTab === 'life' ? 'active' : ''}">Life</button>
-        <button data-tab="me" class="${activeTab === 'me' ? 'active' : ''}">Me</button>
+        <button data-tab="today" class="${activeTab === 'today' ? 'active' : ''}"><span class="tab-icon">⌂</span><span>今天</span></button>
+        <button data-tab="life" class="${activeTab === 'life' ? 'active' : ''}"><span class="tab-icon">♣</span><span>人生</span></button>
+        <button data-tab="me" class="${activeTab === 'me' ? 'active' : ''}"><span class="tab-icon">♙</span><span>我的</span></button>
       </nav>
     </main>
   `;
@@ -135,9 +112,6 @@ function renderToday() {
   }
 
   const remaining = account ? formatNumber(account.remainingLifeDays) : '--';
-  const used = account ? formatNumber(account.usedLifeDays) : '--';
-  const birthday = account?.birthday ?? '还未设置生日';
-  const expectedLifeYears = account ? `${account.expectedLifeYears} 年` : '还未设置';
   const todayLabel = new Intl.DateTimeFormat('zh-CN', {
     year: 'numeric',
     month: 'long',
@@ -149,24 +123,18 @@ function renderToday() {
   return `
     <section class="screen today-screen">
       <section class="balance-panel">
-        <p class="eyebrow">人生余额</p>
+        <div class="balance-title">
+          <p class="eyebrow">人生余额</p>
+          <button class="worldview-toggle" type="button" data-worldview-toggle aria-expanded="${isWorldviewExpanded}" aria-label="了解人生余额">!</button>
+        </div>
         <h1>${remaining}<span> 元</span></h1>
         <p>今天也会花掉 1 元人生</p>
         <p class="date-line">${todayLabel}</p>
-        <dl class="balance-meta">
-          <div>
-            <dt>已消耗</dt>
-            <dd>${used} 天</dd>
-          </div>
-          <div>
-            <dt>预期寿命</dt>
-            <dd>${expectedLifeYears}</dd>
-          </div>
-        </dl>
+        ${isWorldviewExpanded ? '<p class="worldview-explanation">1 天 = 1 元人生。它不是积分，而是把有限时间变得更容易看见：每一天都会消耗，记录帮助你理解它花在了哪里。</p>' : ''}
       </section>
 
       <section class="agent-panel">
-        <div class="agent-avatar">AI</div>
+        <div class="agent-avatar" aria-hidden="true">🤖</div>
         <div class="agent-bubble">
           <p>嗨，我是你的人生助手</p>
           <p>今天这一元，花去哪了？</p>
@@ -184,17 +152,9 @@ function renderToday() {
         </div>
       </section>
 
-      <section class="user-bubble">
-        <p>${account ? `我出生于 ${birthday}，预期寿命 ${expectedLifeYears}。` : '我还没有设置人生账户。'}</p>
-      </section>
-
-      <section class="agent-panel">
-        <div class="agent-avatar">AI</div>
-        <div class="agent-bubble muted">
-          <p>${account ? renderAgentRecordPrompt() : '先去我的页设置生日和预期寿命，我会帮你计算人生余额。'}</p>
-        </div>
-      </section>
-
+      ${renderSubmittedRecordBubble()}
+      ${isAnalyzingRecord ? renderAgentMessage('我正在理解你的记录，理解完成后会生成今日账单，请确认是否准确。') : ''}
+      ${renderRecordPreview()}
       ${renderTodayRecord()}
 
       ${renderComposer()}
@@ -202,14 +162,21 @@ function renderToday() {
   `;
 }
 
-function renderAgentRecordPrompt() {
-  if (!todayRecord) {
-    return '人生账户已准备好。现在可以直接告诉我：今天这一元，花去哪了？';
+function renderSubmittedRecordBubble() {
+  if ((!isAnalyzingRecord && !recordPreview) || !recordDraft) {
+    return '';
   }
 
-  return todayRecord.needsConfirmation
-    ? '我已经理解了你的记录。有些时间是估算的，请看看是否像你的一天。'
-    : '我已经理解了你的记录，并生成了今天的人生账单。';
+  return `<section class="user-bubble"><p>${escapeHtml(recordDraft)}</p></section>`;
+}
+
+function renderAgentMessage(message: string) {
+  return `
+    <section class="agent-panel processing-message">
+      <div class="agent-avatar" aria-hidden="true">🤖</div>
+      <div class="agent-bubble muted"><p>${message}</p></div>
+    </section>
+  `;
 }
 
 function renderTodayRecord() {
@@ -228,7 +195,7 @@ function renderTodayRecord() {
 
     <section class="analysis-card">
       <div class="analysis-heading">
-        <div class="agent-avatar small">AI</div>
+        <div class="agent-avatar small" aria-hidden="true">🤖</div>
         <div>
           <p class="eyebrow">我理解的是</p>
           <p>${escapeHtml(todayRecord.summary)}</p>
@@ -259,6 +226,38 @@ function renderTodayRecord() {
       <p class="confirmation-note">
         ${todayRecord.needsConfirmation ? '包含估算时间，后续可继续调整。' : '记录中的时间信息较明确。'}
       </p>
+    </section>
+  `;
+}
+
+function renderRecordPreview() {
+  if (!recordPreview) {
+    return '';
+  }
+
+  return `
+    <section class="record-preview">
+      <p class="eyebrow">AI 解析预览</p>
+      <div class="preview-activities">
+        ${recordPreview.activities.map((activity) => `
+          <article>
+            <span>${escapeHtml(activity.dimension)} · ${escapeHtml(activity.domain)}</span>
+            <strong>${escapeHtml(activity.title)}</strong>
+            <em>约 ${formatDuration(activity.durationMinutes)}</em>
+          </article>
+        `).join('')}
+      </div>
+      ${recordPreview.stateDescription ? `<p class="state-line">${escapeHtml(recordPreview.stateDescription)}</p>` : ''}
+      <div class="preview-summary">
+        <span>AI 今日总结</span>
+        <p>${escapeHtml(recordPreview.summary)}</p>
+      </div>
+      <p class="preview-dimensions">涉及维度：${recordPreview.dimensionSummary.map((item) => escapeHtml(item.dimension)).join('、')}</p>
+      <div class="preview-actions">
+        <p>以上理解是否准确？</p>
+        <button type="button" class="secondary-action" data-preview-action="modify">需要修改</button>
+        <button type="button" class="primary-action compact" data-preview-action="confirm">确认并保存</button>
+      </div>
     </section>
   `;
 }
@@ -305,6 +304,7 @@ function renderLife() {
   return `
     <section class="screen life-screen">
       <section class="page-heading">
+        <h1>人生</h1>
         <div class="segmented">
           <button class="active">概览</button>
           <button>趋势</button>
@@ -434,6 +434,21 @@ function bindEvents() {
     });
   });
 
+  document.querySelector<HTMLButtonElement>('[data-worldview-toggle]')?.addEventListener('click', () => {
+    isWorldviewExpanded = !isWorldviewExpanded;
+    render();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-preview-action]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button.dataset.previewAction === 'modify') {
+        modifyPreview();
+        return;
+      }
+      void confirmPreview();
+    });
+  });
+
   document.querySelector<HTMLFormElement>('#account-form')?.addEventListener('submit', async (event) => {
     event.preventDefault();
 
@@ -457,49 +472,22 @@ function bindEvents() {
 }
 
 async function loadAccount() {
-  try {
-    const response = await fetch('/api/account');
-
-    if (!response.ok) {
-      return;
-    }
-
-    persistAccount((await response.json()) as Account);
-  } catch (error) {
-    console.error(error);
+  const mockAccount = await getMockAccount();
+  if (mockAccount) {
+    persistAccount(mockAccount);
   }
 
   render();
 }
 
 async function loadTodayRecord() {
-  try {
-    const response = await fetch('/api/agent/records/today');
-
-    if (!response.ok) {
-      return;
-    }
-
-    todayRecord = (await response.json()) as TodayRecord;
-  } catch (error) {
-    console.error(error);
-  }
+  todayRecord = await getMockTodayRecord();
 
   render();
 }
 
 async function loadRecentRecords() {
-  try {
-    const response = await fetch('/api/life/recent-records');
-
-    if (!response.ok) {
-      return;
-    }
-
-    recentRecords = (await response.json()) as TodayRecord[];
-  } catch (error) {
-    console.error(error);
-  }
+  recentRecords = await getMockRecentRecords();
 
   render();
 }
@@ -510,21 +498,7 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
   render();
 
   try {
-    const response = await fetch('/api/account', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const body = await response.json();
-
-    if (!response.ok) {
-      throw new Error(body.message ?? '保存失败');
-    }
-
-    persistAccount(body as Account);
+    persistAccount(await saveMockAccount(payload));
     activeTab = 'today';
     formMessage = '';
   } catch (error) {
@@ -535,38 +509,47 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
 }
 
 async function saveTodayRecord(content: string) {
-  // 提交记录后，后端会同步完成 Agent 解析并返回今日人生账单。
+  // 前端优先阶段先在 Mock 层解析；只有用户确认后才生成一条本地生效记录。
   recordDraft = content;
-  recordMessage = '正在保存记录...';
+  recordMessage = '';
+  isAnalyzingRecord = true;
+  recordPreview = null;
   render();
 
   try {
-    const response = await fetch('/api/agent/records', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        lifeDate: getTodayDateValue(),
-        content,
-      }),
-    });
-
-    const body = await response.json();
-
-    if (!response.ok) {
-      throw new Error(body.message ?? '保存记录失败');
-    }
-
-    todayRecord = body as TodayRecord;
-    // 同步刷新 Life 页的轻量历史，让本次账单立刻可回看。
-    recentRecords = [todayRecord, ...recentRecords.filter((record) => record.recordId !== todayRecord?.recordId)];
-    recordDraft = '';
-    recordMessage = body.needsConfirmation ? 'AI 已完成初步理解，请检查估算结果。' : 'AI 已完成理解。';
+    recordPreview = await previewMockRecord({ lifeDate: getTodayDateValue(), content });
+    recordMessage = '请确认 AI 对今天的理解。';
   } catch (error) {
-    recordMessage = error instanceof Error ? error.message : '保存记录失败，请稍后再试。';
+    recordMessage = error instanceof Error ? error.message : '暂时无法理解这条记录，请稍后再试。';
+  } finally {
+    isAnalyzingRecord = false;
   }
 
+  render();
+}
+
+function modifyPreview() {
+  if (!recordPreview) {
+    return;
+  }
+  recordDraft = recordPreview.content;
+  recordPreview = null;
+  recordMessage = '已回填原文，你可以修改后重新发送。';
+  render();
+  document.querySelector<HTMLInputElement>('#record-form input[name="content"]')?.focus();
+}
+
+async function confirmPreview() {
+  if (!recordPreview) {
+    return;
+  }
+  recordMessage = '正在保存今日账单...';
+  render();
+  todayRecord = await confirmMockRecord(recordPreview);
+  recentRecords = [todayRecord, ...recentRecords.filter((record) => record.lifeDate !== todayRecord?.lifeDate)];
+  recordPreview = null;
+  recordDraft = '';
+  recordMessage = '今日账单已保存。';
   render();
 }
 

@@ -13,7 +13,7 @@ import {
 
 type Tab = 'today' | 'life' | 'me';
 type LifeView = 'overview' | 'trend' | 'timeline' | 'achievements';
-type IconName = 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'chevron' | 'award' | 'flame' | 'trend' | 'clock' | 'check';
+type IconName = 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'chevron' | 'award' | 'flame' | 'trend' | 'clock' | 'check' | 'sparkles' | 'bell' | 'shield' | 'database' | 'help' | 'edit';
 
 const accountStorageKey = 'life-wallet-account';
 
@@ -36,6 +36,7 @@ let isWorldviewExpanded = false;
 let formMessage = '';
 let recordMessage = '';
 let recordDraft = '';
+let isAgentReminderEnabled = true;
 
 // 前端第一版先用很轻的全局状态驱动页面，便于快速验证 Today / Life / Me 三个 Tab。
 // 后续如果页面复杂起来，再考虑引入正式状态管理。
@@ -102,6 +103,12 @@ function renderIcon(name: IconName) {
     trend: '<path d="M3 18 9 12l4 4 8-10"/><path d="M15 6h6v6"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
     check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 2.6 2.6L16.5 9"/>',
+    sparkles: '<path d="m12 3 1.3 3.7L17 8l-3.7 1.3L12 13l-1.3-3.7L7 8l3.7-1.3L12 3Z"/><path d="m18.5 14 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/><path d="m5 13 .7 1.8 1.8.7-1.8.7L5 18l-.7-1.8-1.8-.7 1.8-.7L5 13Z"/>',
+    bell: '<path d="M5 17h14l-1.6-2.2V10a5.4 5.4 0 0 0-10.8 0v4.8L5 17Z"/><path d="M10 20h4"/>',
+    shield: '<path d="M12 3 5 6v5c0 4.6 2.7 8 7 10 4.3-2 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
+    database: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>',
+    help: '<circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 0 1 4.7.7c0 1.8-2.5 2-2.5 4"/><path d="M12 17.2h.01"/>',
+    edit: '<path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
   }[name];
 
   return `<svg class="icon icon-${name}" viewBox="0 0 24 24" aria-hidden="true">${content}</svg>`;
@@ -532,30 +539,84 @@ function renderMe() {
 
   const birthday = account?.birthday ?? '1995-01-01';
   const expectedLifeYears = account?.expectedLifeYears ?? 80;
+  const remaining = account?.remainingLifeDays ?? 28652;
+  const age = Math.max(0, new Date().getFullYear() - Number(birthday.slice(0, 4)));
 
   return `
     <section class="screen me-screen">
-      <section class="page-heading">
-        <p class="eyebrow">Me</p>
-        <h1>设置人生账户</h1>
-        <p>只需要两个数字，AI 会把它换算成你的人生余额。</p>
+      <header class="me-header">
+        <h1>我的</h1>
+      </header>
+
+      <section class="profile-card">
+        <div class="profile-avatar" aria-hidden="true">人</div>
+        <div class="profile-copy">
+          <div class="profile-name-row">
+            <h2>人生体验者</h2>
+            <span>体验版</span>
+          </div>
+          <p>已陪你记录生活的第 7 天</p>
+        </div>
+        <button class="profile-edit" type="button" data-focus-account aria-label="编辑人生账户">${renderIcon('edit')}</button>
       </section>
 
-      <form class="account-form" id="account-form">
-        <label>
-          <span>生日</span>
-          <input name="birthday" type="date" value="${birthday}" required />
-        </label>
+      <section class="me-stats" aria-label="人生数据摘要">
+        <div><strong>${remaining.toLocaleString('zh-CN')}</strong><span>人生余额</span></div>
+        <div><strong>${Math.max(recentRecords.length, 7)}</strong><span>记录天数</span></div>
+        <div><strong>8</strong><span>已获成就</span></div>
+      </section>
 
-        <label>
-          <span>预期寿命</span>
-          <input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" required />
-        </label>
+      <section class="settings-section account-settings" id="account-settings">
+        <div class="settings-title"><h2>人生账户</h2><span>用于计算人生余额</span></div>
+        <form class="mini-account-form" id="account-form">
+          <label class="setting-row">
+            <span class="setting-icon green">${renderIcon('calendar')}</span>
+            <span class="setting-copy"><strong>出生日期</strong><small>当前约 ${age} 岁</small></span>
+            <input name="birthday" type="date" value="${birthday}" aria-label="出生日期" required />
+          </label>
+          <label class="setting-row">
+            <span class="setting-icon amber">${renderIcon('life')}</span>
+            <span class="setting-copy"><strong>预期寿命</strong><small>仅用于余额估算</small></span>
+            <span class="number-field"><input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" aria-label="预期寿命" required /><em>岁</em></span>
+          </label>
+          <button class="me-save-button" type="submit">保存人生账户</button>
+          <p class="form-message" id="form-message">${formMessage}</p>
+        </form>
+      </section>
 
-        <button class="primary-action" type="submit">保存账户</button>
-        <p class="form-message" id="form-message">${formMessage}</p>
-      </form>
+      <section class="settings-section">
+        <div class="settings-title"><h2>AI 助手</h2></div>
+        <div class="setting-row static-row">
+          <span class="setting-icon violet">${renderIcon('sparkles')}</span>
+          <span class="setting-copy"><strong>理解偏好</strong><small>温和总结 · 自动归类</small></span>
+          <span class="setting-value">默认</span>
+        </div>
+        <label class="setting-row switch-row">
+          <span class="setting-icon blue">${renderIcon('bell')}</span>
+          <span class="setting-copy"><strong>记录提醒</strong><small>每天 21:30 温和提醒</small></span>
+          <input class="mini-switch" type="checkbox" data-agent-reminder ${isAgentReminderEnabled ? 'checked' : ''} aria-label="记录提醒" />
+        </label>
+      </section>
+
+      <section class="settings-section">
+        <div class="settings-title"><h2>数据与服务</h2></div>
+        ${renderMeActionRow('shield', '隐私与安全', '数据仅用于生成你的个人洞察', 'privacy')}
+        ${renderMeActionRow('database', '数据管理', '查看与管理本地记录', 'data')}
+        ${renderMeActionRow('help', '帮助与反馈', '告诉我们你的使用感受', 'help')}
+      </section>
+
+      <p class="me-version">Life Wallet · H5 Demo v0.1</p>
     </section>
+  `;
+}
+
+function renderMeActionRow(icon: IconName, title: string, description: string, action: string) {
+  return `
+    <button class="setting-row action-row" type="button" data-me-action="${action}">
+      <span class="setting-icon neutral">${renderIcon(icon)}</span>
+      <span class="setting-copy"><strong>${title}</strong><small>${description}</small></span>
+      <span class="setting-chevron">${renderIcon('chevron')}</span>
+    </button>
   `;
 }
 
@@ -575,6 +636,26 @@ function bindEvents() {
       activeLifeView = button.dataset.lifeView as LifeView;
       render();
       window.scrollTo(0, 0);
+    });
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-focus-account]')?.addEventListener('click', () => {
+    document.querySelector<HTMLElement>('#account-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => document.querySelector<HTMLInputElement>('#account-form input')?.focus(), 350);
+  });
+
+  document.querySelector<HTMLInputElement>('[data-agent-reminder]')?.addEventListener('change', (event) => {
+    isAgentReminderEnabled = (event.currentTarget as HTMLInputElement).checked;
+    formMessage = isAgentReminderEnabled ? '已开启每日记录提醒。' : '已关闭记录提醒。';
+    render();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-me-action]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const labels: Record<string, string> = { privacy: '隐私与安全', data: '数据管理', help: '帮助与反馈' };
+      formMessage = `${labels[button.dataset.meAction ?? ''] ?? '该功能'}将在后续版本开放。`;
+      render();
+      document.querySelector<HTMLElement>('#account-settings')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   });
 
@@ -646,14 +727,13 @@ async function loadRecentRecords() {
 }
 
 async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYears'>) {
-  // 保存账户成功后直接回到 Today，让用户马上看到人生余额并开始记录。
+  // 设置页保存后留在当前页面，让用户明确看到保存结果，再自行返回 Today。
   formMessage = '正在保存...';
   render();
 
   try {
     persistAccount(await saveMockAccount(payload));
-    activeTab = 'today';
-    formMessage = '';
+    formMessage = '人生账户已更新。';
   } catch (error) {
     formMessage = error instanceof Error ? error.message : '保存失败，请稍后再试。';
   }

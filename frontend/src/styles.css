@@ -1499,6 +1499,378 @@ button {
   font-size: 11px;
 }
 
+/* 「我的」采用小程序个人中心常见的信息层级：身份、数据摘要、分组设置。 */
+.me-screen {
+  padding-top: 0;
+  padding-bottom: 52px;
+  background:
+    radial-gradient(circle at 92% 2%, rgb(146 205 156 / 20%), transparent 22%),
+    linear-gradient(180deg, #f2f7f1 0, #f7f9f5 260px, transparent 460px);
+}
+
+.me-header {
+  display: grid;
+  height: 68px;
+  place-items: center;
+}
+
+.me-header h1 {
+  margin: 0;
+  color: #18261e;
+  font-size: 21px;
+  font-weight: 760;
+  letter-spacing: .04em;
+}
+
+.profile-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 80%);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #176f45 0%, #2f9659 62%, #57ad71 100%);
+  box-shadow: 0 16px 34px rgb(25 105 61 / 16%);
+  padding: 22px 18px;
+  color: #fff;
+}
+
+.profile-card::after {
+  position: absolute;
+  top: -64px;
+  right: -45px;
+  width: 154px;
+  height: 154px;
+  border: 26px solid rgb(255 255 255 / 7%);
+  border-radius: 50%;
+  content: "";
+}
+
+.profile-avatar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 3px solid rgb(255 255 255 / 70%);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #eff9ee, #c8e9ce);
+  box-shadow: 0 7px 18px rgb(7 62 33 / 20%);
+  color: #176e43;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.profile-copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-name-row h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 750;
+}
+
+.profile-name-row span {
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 14%);
+  padding: 3px 7px;
+  font-size: 9px;
+}
+
+.profile-copy p {
+  margin: 7px 0 0;
+  color: rgb(255 255 255 / 76%);
+  font-size: 11px;
+}
+
+.profile-edit {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 15%);
+  color: #fff;
+  cursor: pointer;
+}
+
+.profile-edit .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.me-stats {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: -1px 12px 0;
+  border: 1px solid #e5ebe5;
+  border-radius: 0 0 20px 20px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 12px 28px rgb(45 81 56 / 7%);
+  padding: 16px 5px 14px;
+}
+
+.me-stats div {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  border-right: 1px solid #edf0ed;
+}
+
+.me-stats div:last-child {
+  border-right: 0;
+}
+
+.me-stats strong {
+  color: #1b3426;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.me-stats span {
+  color: #849087;
+  font-size: 10px;
+}
+
+.settings-section {
+  overflow: hidden;
+  margin-top: 18px;
+  border: 1px solid #e3e9e3;
+  border-radius: 20px;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 10px 28px rgb(43 73 52 / 5%);
+}
+
+.settings-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 16px 7px;
+}
+
+.settings-title h2 {
+  margin: 0;
+  color: #213128;
+  font-size: 14px;
+  font-weight: 760;
+}
+
+.settings-title > span {
+  color: #9aa39d;
+  font-size: 9px;
+}
+
+.mini-account-form {
+  display: block;
+}
+
+.setting-row {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  gap: 11px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  padding: 10px 16px;
+  color: #25352c;
+  text-align: left;
+}
+
+.setting-row::after {
+  position: absolute;
+  right: 16px;
+  bottom: 0;
+  left: 59px;
+  height: 1px;
+  background: #edf0ed;
+  content: "";
+}
+
+.setting-row:last-of-type::after,
+.settings-section > .setting-row:last-child::after {
+  display: none;
+}
+
+.setting-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+}
+
+.setting-icon .icon {
+  width: 17px;
+  height: 17px;
+  stroke-width: 1.7;
+}
+
+.setting-icon.green { background: #e8f5e9; color: #288754; }
+.setting-icon.amber { background: #fff4dd; color: #c98824; }
+.setting-icon.violet { background: #f1edfb; color: #7961b7; }
+.setting-icon.blue { background: #e9f3fb; color: #4a87ad; }
+.setting-icon.neutral { background: #f1f4f1; color: #607067; }
+
+.setting-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+
+.setting-copy strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.setting-copy small {
+  overflow: hidden;
+  color: #929c95;
+  font-size: 9px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setting-row > input[type="date"] {
+  width: 112px;
+  border: 0;
+  background: transparent;
+  color: #59665e;
+  font-size: 11px;
+  text-align: right;
+}
+
+.number-field {
+  display: flex;
+  align-items: center;
+  color: #59665e;
+}
+
+.number-field input {
+  width: 42px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  text-align: right;
+}
+
+.number-field em {
+  font-size: 11px;
+  font-style: normal;
+}
+
+.me-save-button {
+  width: calc(100% - 32px);
+  margin: 12px 16px 4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #299256, #3eaa67);
+  box-shadow: 0 8px 18px rgb(42 148 87 / 16%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  padding: 11px 16px;
+}
+
+.mini-account-form .form-message {
+  display: grid;
+  min-height: 29px;
+  place-items: center;
+  color: #6c7b72;
+  font-size: 9px;
+  padding: 3px 12px 8px;
+}
+
+.setting-value {
+  color: #98a29b;
+  font-size: 10px;
+}
+
+.mini-switch {
+  position: relative;
+  width: 43px;
+  height: 24px;
+  flex: 0 0 auto;
+  margin: 0;
+  appearance: none;
+  border-radius: 999px;
+  background: #d9ded9;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.mini-switch::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(27 47 34 / 20%);
+  content: "";
+  transition: .2s ease;
+}
+
+.mini-switch:checked {
+  background: #35a262;
+}
+
+.mini-switch:checked::after {
+  transform: translateX(19px);
+}
+
+.action-row {
+  cursor: pointer;
+}
+
+.action-row:active {
+  background: #f7faf7;
+}
+
+.setting-chevron {
+  color: #b2bab4;
+}
+
+.setting-chevron .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.me-version {
+  margin: 23px 0 0;
+  color: #a1aaa4;
+  font-size: 9px;
+  text-align: center;
+}
+
 .tab-bar {
   position: sticky;
   z-index: 20;

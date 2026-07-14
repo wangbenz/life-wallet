@@ -2,7 +2,7 @@
 
 Status: Active
 Stage: H5 Demo Coding / Agent Learning
-Last Updated: 2026-07-11
+Last Updated: 2026-07-14
 Owner: Human + ChatGPT + Codex
 
 ## Project Overview
@@ -18,9 +18,9 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 Agent First 的 AI 人�
 - 后端保留已跑通的人生账户、Today 记录、规则版轻量 Agent 和最近记录 API。
 - 前端已切换为独立 Mock 原型模式，不依赖后端即可体验 Today、Life 和 Me 的完整核心交互。
 
-当前前端原型包括自然语言记录、2 秒模拟理解、账单预览确认、Life 概览 / 趋势 / 时间轴 / 成就，以及小程序风格的 Me 页面。Mock 数据与函数统一放在 `frontend/src/mock/data.ts`，账户和已确认记录使用 `localStorage` 保存。
+当前前端原型包括人生账户初始化、自然语言记录、关键词驱动的本地 Mock 理解、账单预览编辑、确认保存、准确度反馈，以及基于真实本地记录的 Life 洞察 / 记录和精简 Me 页面。成就、连续打卡、假趋势和无功能入口已退出首版。Mock 数据与函数统一放在 `frontend/src/mock/`，账户、记录与反馈使用 `localStorage` 保存。
 
-下一步优先使用当前 H5 原型收集用户反馈并补齐测试环境；Agent 学习主线仍是实现带循环、Tool 和对话状态的最小自定义 Agent，再逐步评估真实模型和 LangChain4j。
+下一步优先部署当前 H5 原型，并邀请 5-10 个目标用户完成 7 个记录日验证；Agent 学习主线仍是实现带循环、Tool 和对话状态的最小自定义 Agent，再逐步评估真实模型和 LangChain4j。
 
 ## Workflow
 

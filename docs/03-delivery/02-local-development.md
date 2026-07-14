@@ -2,7 +2,7 @@
 
 Status: Active
 Stage: H5 Demo Coding / Frontend Mock
-Last Updated: 2026-07-11
+Last Updated: 2026-07-14
 Owner: Human + ChatGPT + Codex
 
 ## 1. Prerequisites
@@ -50,19 +50,20 @@ Frontend URL:
 http://127.0.0.1:5173
 ```
 
-当前前端处于 Mock UI 调试阶段，所有账户、记录与解析预览数据均来自 `frontend/src/mock/data.ts`，不需要启动后端，也不配置 Vite 代理。
+当前前端处于独立 Mock 验证阶段，账户、记录、反馈和解析预览数据来自 `frontend/src/mock/`，不需要启动后端，也不配置 Vite 代理。
 
 当前页面范围：
 
-- Today：人生余额、自然语言输入、2 秒模拟理解、账单预览、修改和确认保存。
-- Life：概览、趋势、时间轴、成就。
-- Me：个人信息、人生数据摘要、账户设置、AI 提醒和数据服务入口。
+- Today：人生余额、补记日期、自然语言输入、Mock 理解、预览编辑、确认保存和准确度反馈。
+- Life：基于真实本地记录的阶段洞察和历史记录管理。
+- Me：人生账户、隐私说明、本地数据导出 / 清除和体验反馈。
 
 Mock 行为：
 
-- 无论输入什么内容，记录预览都会返回同一份固定分析结果。
-- 账户设置与确认后的记录保存在浏览器 `localStorage`。
-- 趋势、时间轴、成就和部分 Me 数据是用于视觉验证的静态展示数据。
+- Mock 根据工作、学习、健康、关系、生活、休闲、睡眠等关键词和用户表达的时长生成不同结果。
+- 人生币按 `活动分钟数 / 1440` 换算，不把已记录时间占比误标为人生币。
+- Life 不展示假趋势、假成就或固定统计；记录不足时会明确说明暂不形成趋势结论。
+- 账户、已确认记录、准确度反馈和 Me 页体验反馈保存在浏览器 `localStorage`。
 - 当前前端不会请求 `http://127.0.0.1:8080`，后端是否启动不影响前端预览。
 
 Build:
@@ -75,10 +76,13 @@ pnpm build
 前端验证：
 
 ```bash
+pnpm test
 pnpm build
 ```
 
-如需重置 Mock 体验数据，可在浏览器开发者工具中清除该站点的 Local Storage 后刷新页面。不要把 Mock 输出用于验证真实 Agent 分类准确率。
+`pnpm test` 当前覆盖人生币换算、多个维度识别、状态词识别和估算标记；生产构建继续由 TypeScript 与 Vite 校验。
+
+如需重置 Mock 体验数据，可在 Me 页先导出 JSON，再使用“清除数据”；也可以在浏览器开发者工具中清除该站点的 Local Storage。不要把关键词 Mock 输出用于验证真实 Agent 分类准确率。
 
 ## 4. Database
 

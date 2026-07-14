@@ -1,17 +1,17 @@
 # Current Status
 
 Status: Confirmed
-Stage: MVP Coding Readiness / Architecture
-Last Updated: 2026-07-09
+Stage: H5 Demo Coding / Frontend Prototype Validation
+Last Updated: 2026-07-11
 Owner: Human + ChatGPT + Codex
 
 ## 1. 当前阶段
 
-当前项目在完成 Product Discovery、Product Definition 草案和 H5 Demo MVP Design 草案后，根据 Session 002 重新打开 Product Discovery，并已完成进入代码前的最小边界确认。
+当前项目已完成 Product Discovery、Product Definition 草案、H5 Demo MVP Design 草案、最小 Architecture，以及 Milestone 1-5 的首轮代码实现。
 
 当前不要开始做完整微信小程序，也不要扩大 MVP 范围。
 
-当前目标是短平快进入第一版 H5 Agent Demo 的 Architecture、Task Breakdown 和 Coding。
+当前目标是在不扩大产品边界的前提下，用独立前端 Mock 原型验证 Today、Life、Me 三个页面的核心交互与视觉表达，再进入用户反馈、测试环境和真实 Agent 演进。
 
 当前已创建 Product Definition 草案：
 
@@ -43,7 +43,7 @@ Owner: Human + ChatGPT + Codex
 最终产品载体：微信小程序
 产品核心：Agent First / AI Native
 交互核心：用户 → Agent → Memory → Insight
-下一步主题：H5 Agent Demo Coding
+下一步主题：H5 Demo 用户反馈 / 测试环境 / Agent Learning
 ```
 
 ## 2. 当前主线
@@ -222,11 +222,11 @@ Agent 不只是聊天机器人，而是产品主入口。
 
 用户进入产品后，不应先寻找“记录按钮”，而是直接向 Agent 表达今天发生了什么、最近怎么样、想复盘什么。
 
-### 3.16 页面方向：待重新设计
+### 3.16 页面方向：首版前端原型已完成
 
-上一版 H5 Demo 的 `首页｜账单｜我的` 结构仍偏传统小程序。
+上一版 H5 Demo 的 `首页｜账单｜我的` 结构已调整为 Agent First 的三页结构。
 
-新的原型方向建议为：
+当前原型结构为：
 
 ```text
 Today（Agent）｜Life（人生）｜Me（我的）
@@ -235,6 +235,15 @@ Today（Agent）｜Life（人生）｜Me（我的）
 - Today：人生余额、今日记录、Agent 对话、AI 理解、今日总结。
 - Life：长期趋势、Memory、人生画像、Insight、时间轴。
 - Me：生日、预期寿命、AI 设置、数据管理。
+
+当前前端实现状态：
+
+- 已移除假手机框、假系统状态栏、假时间戳和无功能装饰，页面按真实 H5 视口响应式展示。
+- Today 已实现人生余额、世界观说明、快捷输入、AI 理解提示、账单预览、修改和确认保存流程。
+- Life 已实现概览、趋势、时间轴和成就四个子页面，当前数据均为前端 Mock 展示数据。
+- Me 已实现小程序风格的用户信息、人生数据摘要、账户设置、AI 提醒和数据服务入口。
+- 前端当前不调用后端，所有 Mock 数据和异步函数集中在 `frontend/src/mock/data.ts`，账户与记录使用 `localStorage` 保存。
+- 后端已有 API 和规则版 Agent 代码继续保留，但当前展示原型尚未重新接入这些 API。
 
 ### 3.17 Dashboard 降级，Insight 升级：已确认
 
@@ -300,18 +309,30 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 ## 5. 当前正在进行
 
-当前已完成进入代码前的最小产品边界确认，并完成 Milestone 1 项目骨架。
+当前已完成 Milestone 1-5：项目骨架、人生账户、Today 记录、轻量 Life Agent 和今日人生账单。
 
-不要继续扩大 Product Discovery。下一步进入 Milestone 2：人生账户。
+在此基础上，已完成一轮前端原型强化：
+
+- 独立 Mock 数据层。
+- Today 记录预览确认流程。
+- Life 概览、趋势、时间轴和成就页面。
+- Me 小程序风格页面。
+- 原型图视觉对齐、图标统一和移动端响应式检查。
+
+当前默认演示模式是“独立前端 Mock”，不是“前后端联调”。Mock 分析结果用于验证交互和视觉，不代表真实 Agent 能力已经完成。
+
+不要继续扩大 Product Discovery。下一步进入 Milestone 6：反馈与测试环境。
 
 ## 6. 下一步应该讨论
 
 下一步建议按顺序推进：
 
-1. Milestone 2：人生账户。
-2. 实现账户设置 API。
-3. 实现 Me 页生日和预期寿命设置。
-4. Today 页展示人生余额。
+1. Milestone 6：用户反馈。
+2. 保存“准确 / 一般 / 不准”反馈并在 Today 页提供入口。
+3. 增加基础错误处理。
+4. 准备 H5 Demo 测试环境部署方式。
+5. 根据用户反馈决定前端何时重新接入现有后端 API。
+6. 用户明确要求 Agent 实现时，按 `docs/02-architecture/04-agent-design.md` 开始最小自定义 Agent vertical slice。
 
 ## 7. 新会话接手指令
 
@@ -336,4 +357,4 @@ Agent 能力边界由用户当前人生上下文 Context 决定，而不是由�
 
 默认下一题：
 
-> 开始 Milestone 2：人生账户。
+> 开始 Milestone 6：为当前独立前端 Mock 原型增加反馈入口并准备测试环境。

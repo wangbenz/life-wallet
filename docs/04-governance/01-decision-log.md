@@ -1,8 +1,8 @@
 # Decision Log
 
-Status: Draft
+Status: Active
 Stage: Product Discovery
-Last Updated: 2026-07-09
+Last Updated: 2026-07-11
 Owner: Human + ChatGPT + Codex
 
 ## Decision-001: 每天固定扣除 1 元人生
@@ -655,3 +655,38 @@ Today（Agent）｜Life（人生）｜Me（我的）
 项目目标是尽快做出可运行的 Agent 产品 Demo，用真实体验验证核心闭环。
 
 继续大范围讨论 Product Discovery 会拖慢进度；当前产品边界已经足够支撑最小实现，应先进入代码阶段。
+
+## Decision-016: 前端原型阶段采用独立 Mock 模式
+
+### Status
+
+Confirmed
+
+### 类型
+
+Delivery Decision / UX Validation Decision
+
+### 背景
+
+早期 H5 Demo 已经跑通 Spring Boot API 和规则版轻量 Agent，但当前优先任务是依据原型图快速验证 Today、Life、Me 的页面结构、视觉风格和预览确认流程。持续依赖后端会增加 UI 调试成本，也容易把固定规则输出误当成已经成熟的 Agent 体验。
+
+### 最终决策
+
+当前前端暂时切换为完全独立的 Mock 模式：
+
+- 所有前端接口替身和固定 JSON 集中在 `frontend/src/mock/data.ts`。
+- Mock 函数继续返回 Promise，保留未来替换真实 API 时的异步调用形态。
+- 账户和确认后的记录使用浏览器 `localStorage` 保存。
+- 前端移除 `fetch` 依赖和 Vite API 代理，启动前端即可独立体验。
+- 后端已有 API 和规则版 Agent 代码继续保留，不删除、不伪装成当前前端数据来源。
+
+### 原因
+
+独立 Mock 可以缩短视觉和交互迭代周期，使当前验证重点集中在记录门槛、AI 理解提示、预览确认、长期画像和小程序页面风格。它是阶段性交付策略，不是目标架构变更。
+
+### 影响范围
+
+- 当前展示的活动、趋势、时间轴、成就和部分用户数据可能是固定 Mock 数据，不能用于判断真实 Agent 准确率。
+- 本地预览默认只启动 `frontend/`，后端可独立测试。
+- 用户反馈验证完成后，再决定前端重新接入真实 API 的范围与顺序。
+- 目标产品仍是 Agent First，最终载体仍是微信小程序；本决策不扩大第一版产品边界。

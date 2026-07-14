@@ -1,13 +1,20 @@
 # Technical Architecture
 
-Status: Draft
-Stage: Architecture
-Last Updated: 2026-07-09
+Status: Active
+Stage: Architecture / H5 Demo Coding
+Last Updated: 2026-07-11
 Owner: Human + ChatGPT + Codex
 
 ## 1. 架构目标
 
 第一版架构只服务 H5 Agent Demo。
+
+本文件描述目标架构。当前实现分为两个可独立运行的模式：
+
+- 前端原型模式：H5 直接调用 `frontend/src/mock/data.ts`，使用 `localStorage` 保存账户和已确认记录，不请求后端。
+- 后端能力模式：Spring Boot 已保留人生账户、记录和规则版轻量 Agent API，用于后续恢复真实集成。
+
+当前默认展示前端原型模式；下方的 Spring Boot、LLM、MySQL 链路是目标演进方向，不代表当前前端已经接入。
 
 目标是尽快跑通：
 
@@ -31,8 +38,10 @@ MySQL 持久化
 
 - 展示 Today / Life / Me 三个 Tab。
 - Me 页设置生日和预期寿命。
-- Today 页展示人生余额、Agent 对话、今日记录和解析结果。
-- Life 页展示极简历史或占位。
+- Today 页展示人生余额、Agent 对话、模拟理解、账单预览和确认保存。
+- Life 页展示概览、趋势、时间轴和成就原型。
+- Me 页展示小程序风格的账户、AI 设置和数据服务入口。
+- 前端 Mock 阶段的所有接口替身集中在 `frontend/src/mock/data.ts`。
 
 ### 2.2 Spring Boot Backend
 
@@ -65,6 +74,8 @@ Persistence
 第一版暂不实现复杂 MemoryUpdater，只保留接口位置。
 
 ### 2.4 MySQL
+
+Status: Planned
 
 职责：
 
@@ -127,3 +138,4 @@ feedback
 - 是否加入向量检索。
 - 是否迁移到微信小程序。
 - 是否引入 LangChain4j 管理 Prompt、结构化输出或工具调用。
+- 根据用户反馈决定前端重新接入 Spring Boot API 的范围和顺序。

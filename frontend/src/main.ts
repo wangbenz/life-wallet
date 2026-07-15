@@ -1,5 +1,6 @@
 import './styles.css';
 import {
+  ArrowLeft,
   ArrowUp,
   CalendarDays,
   ChevronRight,
@@ -21,6 +22,7 @@ import {
   type IconNode,
 } from 'lucide';
 import { LIFE_MINUTES_PER_COIN, summarizeDimensions } from './mock/analysis.ts';
+import { resolveMockAgentIntent } from './mock/agent.ts';
 import {
   clearMockUserData,
   deleteMockRecord,
@@ -44,7 +46,12 @@ import {
 
 type Tab = 'today' | 'life' | 'me';
 type LifeView = 'insights' | 'records';
-type IconName = 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron';
+type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron';
+type AgentMessage = { id: number; role: 'agent' | 'user'; content: string; recordIds?: number[] };
+type AgentPendingAction =
+  | { type: 'create-record'; preview: RecordPreview }
+  | { type: 'update-duration'; recordId: number; activityIndex: number; activityTitle: string; oldMinutes: number; newMinutes: number }
+  | { type: 'delete-record'; recordId: number };
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) throw new Error('App root element not found');
@@ -52,6 +59,7 @@ const appRoot = app;
 
 let activeTab: Tab = 'today';
 let activeLifeView: LifeView = 'insights';
+let isAgentOpen = false;
 let account: Account | null = null;
 let recentRecords: TodayRecord[] = [];
 let recordFeedback: RecordFeedback[] = [];
@@ -59,6 +67,7 @@ let generalFeedback: GeneralFeedback[] = [];
 let recordPreview: RecordPreview | null = null;
 let editingRecordId: number | null = null;
 let pendingDeleteRecordId: number | null = null;
+let expandedRecordId: number | null = null;
 let isAnalyzingRecord = false;
 let isWorldviewExpanded = false;
 let isLoading = true;
@@ -69,18 +78,25 @@ let recordMessage = '';
 let feedbackMessage = '';
 let recordDraft = '';
 let recordLifeDate = todayValue();
+let agentDraft = '';
+let isAgentThinking = false;
+let agentPendingAction: AgentPendingAction | null = null;
+let agentContextRecordId: number | null = null;
+let agentMessages: AgentMessage[] = [
+  { id: 1, role: 'agent', content: '你好，我是 Life Agent。你可以让我查询、记录或修改生活片段；写操作会先请你确认。' },
+];
 
 function render() {
   appRoot.innerHTML = `
-    <main class="app-shell">
+    <main class="app-shell${isAgentOpen ? ' agent-shell' : ''}">
       <div class="content-scroll">
-        ${isLoading ? renderLoading() : `${renderToday()}${renderLife()}${renderMe()}`}
+        ${isLoading ? renderLoading() : (isAgentOpen ? renderAgentScreen() : `${renderToday()}${renderLife()}${renderMe()}`)}
       </div>
-      <nav class="tab-bar" aria-label="主导航">
+      ${isAgentOpen ? '' : `<nav class="tab-bar" aria-label="主导航">
         ${renderTabButton('today', 'home', '今天')}
         ${renderTabButton('life', 'life', '人生')}
         ${renderTabButton('me', 'user', '我的')}
-      </nav>
+      </nav>`}
     </main>
   `;
   bindEvents();
@@ -99,34 +115,35 @@ function renderToday() {
   if (!account) return renderTodayOnboarding();
 
   const dayRecords = recentRecords.filter((record) => record.lifeDate === recordLifeDate);
-  const todayLabel = new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric', month: 'long', day: 'numeric', weekday: 'short',
-  }).format(new Date());
+  const todayLabel = formatHeaderDate(new Date());
 
   return `
     <section class="screen today-screen">
-      <section class="balance-panel">
-        <button class="balance-agent-shortcut" type="button" data-record-shortcut aria-label="开始记录今天">${renderIcon('robot')}</button>
-        <div class="balance-title">
-          <p class="eyebrow">人生余额</p>
+      <header class="today-header">
+        <time datetime="${todayValue()}">${todayLabel}</time>
+        <button class="agent-entry" type="button" data-open-agent aria-label="打开 Life Agent 对话">
+          ${renderIcon('robot')}
+          <span>Life Agent</span>
+        </button>
+      </header>
+
+      <section class="life-balance-strip">
+        <div class="balance-main">
+          <span class="balance-mark">${renderIcon('life')}</span>
+          <div><p>人生余额</p><strong>${formatNumber(account.remainingLifeDays)}<em> 元</em></strong></div>
           <button class="icon-button" type="button" data-worldview-toggle aria-expanded="${isWorldviewExpanded}" aria-label="了解人生余额">${renderIcon('info')}</button>
         </div>
-        <h1>${formatNumber(account.remainingLifeDays)}<span> 元</span></h1>
-        <div class="balance-meta"><span>今天也会花掉 1 元人生</span><time>${todayLabel}</time></div>
+        <div class="daily-cost"><span>${renderIcon('check')}</span><p>今天会花掉<strong>1 元人生</strong></p></div>
         ${isWorldviewExpanded ? '<p class="worldview-explanation">1 天 = 1 元人生，24 小时共同组成这 1 元。记录不是为了补齐每一分钟，而是帮助你看见那些值得回看的生活片段。</p>' : ''}
       </section>
 
-      <section class="agent-panel agent-intro">
-        <div class="agent-avatar" aria-hidden="true">${renderIcon('robot')}</div>
-        <div class="agent-bubble">
-          <p>${dayRecords.length > 0 ? `这一天已经记录了 ${dayRecords.length} 个片段，还想补充什么？` : '今天这一元，哪些片段值得记住？'}</p>
-          <small>不用分类，也不用精确到分钟，像发消息一样告诉我。</small>
+      <section class="record-hero">
+        <div class="record-hero-copy">
+          <h1>${dayRecords.length > 0 ? '这一元，还有哪些片段值得记住？' : '今天这一元，哪些片段值得记住？'}</h1>
+          <p>像发消息一样告诉我，不用分类。</p>
         </div>
-      </section>
-
-      <section class="quick-record" aria-label="表达提示">
-        <p>不知道怎么开始？</p>
-        <div>
+        ${renderComposer()}
+        <div class="quick-record" aria-label="表达提示">
           <button type="button" data-quick-prompt="今天主要做了">${renderIcon('sparkles')}今天主要做了…</button>
           <button type="button" data-quick-prompt="最花时间的是">${renderIcon('clock')}最花时间的是…</button>
           <button type="button" data-quick-prompt="今天让我感觉">${renderIcon('heart')}今天让我感觉…</button>
@@ -137,7 +154,6 @@ function renderToday() {
       ${isAnalyzingRecord ? renderAgentMessage('我正在整理这段记录。完成后请你确认活动和估算时长是否准确。') : ''}
       ${renderRecordPreview()}
       ${renderDayRecords(dayRecords)}
-      ${renderComposer()}
     </section>
   `;
 }
@@ -207,9 +223,20 @@ function renderRecordPreview() {
 function renderDayRecords(records: TodayRecord[]) {
   if (records.length === 0) return '';
   return `
-    <section class="day-records">
-      <div class="section-heading"><div><p class="eyebrow">${recordLifeDate === todayValue() ? '今天' : formatLifeDate(recordLifeDate)}</p><h2>已确认的生活片段</h2></div><span>${records.length} 条</span></div>
-      ${records.map(renderSavedRecord).join('')}
+    <section class="today-fragments">
+      <div class="fragments-heading"><h2>${recordLifeDate === todayValue() ? '今天的片段' : `${formatLifeDate(recordLifeDate)}的片段`}</h2><span>${records.length} 条</span></div>
+      <div class="fragment-list">
+        ${records.map((record) => `
+          <article class="fragment-row${expandedRecordId === record.recordId ? ' expanded' : ''}">
+            <div class="fragment-summary">
+              <time>${formatClockTime(record.createdAt)}</time>
+              <p>${escapeHtml(record.content)}</p>
+              <button type="button" data-record-detail="${record.recordId}" aria-expanded="${expandedRecordId === record.recordId}">${expandedRecordId === record.recordId ? '收起理解' : '查看理解'} ${renderIcon('chevron')}</button>
+            </div>
+            ${expandedRecordId === record.recordId ? renderSavedRecord(record) : ''}
+          </article>
+        `).join('')}
+      </div>
     </section>
   `;
 }
@@ -219,7 +246,7 @@ function renderSavedRecord(record: TodayRecord) {
   const totalMinutes = record.dimensionSummary.reduce((sum, item) => sum + item.durationMinutes, 0);
   return `
     <article class="saved-record-card">
-      <div class="saved-source"><p>${escapeHtml(record.content)}</p><button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 修正</button></div>
+      <div class="saved-source"><p>${escapeHtml(record.content)}</p><div class="saved-actions"><button type="button" data-agent-record="${record.recordId}">${renderIcon('robot')} Agent 修改</button><button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button></div></div>
       <div class="analysis-heading">
         <div class="agent-avatar small" aria-hidden="true">${renderIcon('robot')}</div>
         <div><p class="eyebrow">我理解的是</p><p>${escapeHtml(record.summary)}</p></div>
@@ -251,8 +278,8 @@ function renderComposer() {
   return `
     <form class="composer" id="record-form">
       <label class="record-date">记录日期<input name="lifeDate" type="date" max="${todayValue()}" value="${recordLifeDate}" aria-label="记录日期" /></label>
-      <textarea name="content" maxlength="2000" rows="3" placeholder="例如：上午开会，下午改了 3 小时 bug，晚上跑步 40 分钟，有点累…" required>${escapeHtml(recordDraft)}</textarea>
-      <button type="submit" aria-label="发送记录" ${isAnalyzingRecord ? 'disabled' : ''}>${renderIcon('send')}</button>
+      <textarea name="content" maxlength="2000" rows="4" placeholder="例如：下午专注改了 3 小时 bug，晚上跑步 40 分钟…" required>${escapeHtml(recordDraft)}</textarea>
+      <button type="submit" aria-label="交给 AI 整理" ${isAnalyzingRecord ? 'disabled' : ''}>${renderIcon('sparkles')}<span>${isAnalyzingRecord ? '正在整理…' : '交给 AI 整理'}</span></button>
       <p>${escapeHtml(recordMessage)}</p>
     </form>
   `;
@@ -340,7 +367,8 @@ function renderLifeRecords() {
             <p class="history-summary">${escapeHtml(record.summary)}</p>
             <div class="history-tags">${record.dimensionSummary.map((item) => `<span>${escapeHtml(item.dimension)} · ${formatDuration(item.durationMinutes)}</span>`).join('')}</div>
             <footer>
-              <button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 修正记录</button>
+              <button type="button" data-agent-record="${record.recordId}">${renderIcon('robot')} Agent 修改</button>
+              <button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button>
               ${pendingDeleteRecordId === record.recordId
                 ? `<button type="button" class="danger" data-delete-record="${record.recordId}" data-delete-action="confirm">确认删除</button><button type="button" data-delete-record="${record.recordId}" data-delete-action="cancel">取消</button>`
                 : `<button type="button" class="danger-text" data-delete-record="${record.recordId}" data-delete-action="ask">删除</button>`}
@@ -405,6 +433,101 @@ function renderMe() {
   `;
 }
 
+function renderAgentScreen() {
+  return `
+    <section class="screen agent-screen">
+      <header class="agent-page-header">
+        <button type="button" data-close-agent aria-label="返回 Today">${renderIcon('back')}</button>
+        <div class="agent-page-identity">
+          <span>${renderIcon('robot')}</span>
+          <div><h1>Life Agent</h1><p>本地 Mock · 只处理生活记录</p></div>
+        </div>
+        <span class="agent-status" aria-label="当前可用"></span>
+      </header>
+
+      <div class="agent-scope-note">我可以查询、新增、修改或删除本机记录。修改和删除都会先展示差异，确认后才执行。</div>
+
+      <section class="agent-conversation" id="agent-conversation" aria-live="polite">
+        ${agentMessages.map((message) => `
+          <article class="agent-message ${message.role}">
+            ${message.role === 'agent' ? `<span class="message-avatar" aria-hidden="true">${renderIcon('robot')}</span>` : ''}
+            <div class="message-content"><p>${escapeHtml(message.content)}</p>${message.recordIds ? renderAgentRecordCards(message.recordIds) : ''}</div>
+          </article>
+        `).join('')}
+        ${isAgentThinking ? `<article class="agent-message agent"><span class="message-avatar" aria-hidden="true">${renderIcon('robot')}</span><div class="message-content thinking"><span></span><span></span><span></span></div></article>` : ''}
+        ${renderAgentPendingAction()}
+      </section>
+
+      ${agentPendingAction || isAgentThinking ? '' : `
+        <div class="agent-suggestions" aria-label="对话示例">
+          <button type="button" data-agent-prompt="我今天记了什么？">我今天记了什么？</button>
+          <button type="button" data-agent-prompt="把今天的上班从 4 小时修改为 8 小时">修改今天的时长</button>
+          <button type="button" data-agent-prompt="记下今天散步 30 分钟">记下一段生活</button>
+        </div>
+      `}
+
+      <form class="agent-composer" id="agent-form">
+        <textarea name="message" rows="2" maxlength="2000" placeholder="例如：把今天的上班从 4 小时改成 8 小时…" aria-label="给 Life Agent 发消息" required>${escapeHtml(agentDraft)}</textarea>
+        <button type="submit" aria-label="发送给 Life Agent" ${isAgentThinking || agentPendingAction ? 'disabled' : ''}>${renderIcon('send')}</button>
+      </form>
+    </section>
+  `;
+}
+
+function renderAgentRecordCards(recordIds: number[]) {
+  return recordIds.map((recordId) => recentRecords.find((record) => record.recordId === recordId))
+    .filter((record): record is TodayRecord => Boolean(record))
+    .map((record) => `
+      <div class="agent-record-card">
+        <div><time>${formatLifeDate(record.lifeDate)}</time><span>${record.activities.length} 个片段</span></div>
+        <p>${escapeHtml(record.content)}</p>
+        <small>${escapeHtml(record.summary)}</small>
+      </div>
+    `).join('');
+}
+
+function renderAgentPendingAction() {
+  const pendingAction = agentPendingAction;
+  if (!pendingAction) return '';
+  if (pendingAction.type === 'create-record') {
+    const preview = pendingAction.preview;
+    return `
+      <section class="agent-confirm-card" aria-label="待确认的新记录">
+        <p class="eyebrow">新增记录 · 等待确认</p>
+        <h2>${formatLifeDate(preview.lifeDate)}</h2>
+        <p>${escapeHtml(preview.content)}</p>
+        <div class="agent-change-list">${preview.activities.map((activity) => `<div><span>${escapeHtml(activity.title)}</span><strong>${formatDuration(activity.durationMinutes)}${activity.estimated ? ' · 估算' : ''}</strong></div>`).join('')}</div>
+        <div class="agent-confirm-actions"><button type="button" data-agent-action="cancel">取消</button><button class="confirm" type="button" data-agent-action="confirm">确认记录</button></div>
+      </section>
+    `;
+  }
+
+  const record = recentRecords.find((item) => item.recordId === pendingAction.recordId);
+  if (!record) return '';
+  if (pendingAction.type === 'update-duration') {
+    return `
+      <section class="agent-confirm-card" aria-label="待确认的记录修改">
+        <p class="eyebrow">修改记录 · 等待确认</p>
+        <h2>${escapeHtml(pendingAction.activityTitle)}</h2>
+        <p>${escapeHtml(record.content)}</p>
+        <div class="agent-diff"><span>${formatDuration(pendingAction.oldMinutes)}</span>${renderIcon('chevron')}<strong>${formatDuration(pendingAction.newMinutes)}</strong></div>
+        <small>只修改这段活动的时长，其他片段保持不变。</small>
+        <div class="agent-confirm-actions"><button type="button" data-agent-action="cancel">取消</button><button class="confirm" type="button" data-agent-action="confirm">确认修改</button></div>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="agent-confirm-card danger-card" aria-label="待确认的记录删除">
+      <p class="eyebrow">删除记录 · 等待确认</p>
+      <h2>${formatLifeDate(record.lifeDate)}</h2>
+      <p>${escapeHtml(record.content)}</p>
+      <small>这会删除整条记录及其中 ${record.activities.length} 个生活片段。</small>
+      <div class="agent-confirm-actions"><button type="button" data-agent-action="cancel">取消</button><button class="danger" type="button" data-agent-action="confirm">确认删除</button></div>
+    </section>
+  `;
+}
+
 function bindEvents() {
   document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -423,6 +546,27 @@ function bindEvents() {
     });
   });
 
+  document.querySelector<HTMLButtonElement>('[data-open-agent]')?.addEventListener('click', () => openAgent());
+  document.querySelector<HTMLButtonElement>('[data-close-agent]')?.addEventListener('click', () => {
+    isAgentOpen = false;
+    agentContextRecordId = null;
+    render();
+    window.scrollTo(0, 0);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-agent-record]').forEach((button) => {
+    button.addEventListener('click', () => openAgent(Number(button.dataset.agentRecord)));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-record-detail]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const recordId = Number(button.dataset.recordDetail);
+      expandedRecordId = expandedRecordId === recordId ? null : recordId;
+      render();
+      document.querySelector<HTMLButtonElement>(`[data-record-detail="${recordId}"]`)?.focus();
+    });
+  });
+
   document.querySelector<HTMLButtonElement>('[data-worldview-toggle]')?.addEventListener('click', () => {
     isWorldviewExpanded = !isWorldviewExpanded;
     render();
@@ -436,13 +580,6 @@ function bindEvents() {
       render();
       document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.focus();
     });
-  });
-
-  // 余额区的 Agent 入口不是装饰按钮：点击后直接进入当天记录输入。
-  document.querySelector<HTMLButtonElement>('[data-record-shortcut]')?.addEventListener('click', () => {
-    const textarea = document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]');
-    textarea?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    textarea?.focus({ preventScroll: true });
   });
 
   document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.addEventListener('input', (event) => {
@@ -511,6 +648,171 @@ function bindEvents() {
     const formData = new FormData(event.currentTarget as HTMLFormElement);
     void submitGeneralFeedback(String(formData.get('feedback') ?? ''));
   });
+
+  document.querySelector<HTMLTextAreaElement>('#agent-form textarea[name="message"]')?.addEventListener('input', (event) => {
+    agentDraft = (event.currentTarget as HTMLTextAreaElement).value;
+  });
+
+  document.querySelector<HTMLFormElement>('#agent-form')?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget as HTMLFormElement);
+    void handleAgentMessage(String(formData.get('message') ?? ''));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-agent-prompt]').forEach((button) => {
+    button.addEventListener('click', () => void handleAgentMessage(button.dataset.agentPrompt ?? ''));
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-agent-action]').forEach((button) => {
+    button.addEventListener('click', () => button.dataset.agentAction === 'confirm' ? void confirmAgentAction() : cancelAgentAction());
+  });
+}
+
+function openAgent(recordId: number | null = null) {
+  isAgentOpen = true;
+  if (recordId && agentContextRecordId !== recordId) {
+    const record = recentRecords.find((item) => item.recordId === recordId);
+    if (record) {
+      agentContextRecordId = recordId;
+      agentMessages.push({
+        id: Date.now(),
+        role: 'agent',
+        content: '我已经定位到这条记录。告诉我想修改什么；执行前我会展示差异并请你确认。',
+        recordIds: [recordId],
+      });
+    }
+  }
+  render();
+  window.scrollTo(0, 0);
+  document.querySelector<HTMLTextAreaElement>('#agent-form textarea[name="message"]')?.focus();
+}
+
+async function handleAgentMessage(message: string) {
+  const content = message.trim();
+  if (!content || isAgentThinking || agentPendingAction) return;
+
+  agentMessages.push({ id: Date.now(), role: 'user', content });
+  agentDraft = '';
+  isAgentThinking = true;
+  render();
+  scrollAgentToBottom();
+
+  await new Promise((resolve) => window.setTimeout(resolve, 480));
+  const orderedRecords = agentContextRecordId
+    ? [
+      ...recentRecords.filter((record) => record.recordId === agentContextRecordId),
+      ...recentRecords.filter((record) => record.recordId !== agentContextRecordId),
+    ]
+    : recentRecords;
+  const intent = resolveMockAgentIntent(content, orderedRecords, todayValue());
+
+  if (intent.kind === 'create') {
+    try {
+      const preview = await previewMockRecord({ lifeDate: todayValue(), content: intent.content });
+      agentMessages.push({ id: Date.now() + 1, role: 'agent', content: '我整理出一条新记录。确认后才会保存到本机。' });
+      agentPendingAction = { type: 'create-record', preview };
+    } catch (error) {
+      agentMessages.push({ id: Date.now() + 1, role: 'agent', content: error instanceof Error ? error.message : '暂时无法整理这段记录。' });
+    }
+  } else if (intent.kind === 'list') {
+    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message, recordIds: intent.recordIds });
+  } else if (intent.kind === 'update-duration') {
+    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message });
+    agentPendingAction = {
+      type: 'update-duration',
+      recordId: intent.recordId,
+      activityIndex: intent.activityIndex,
+      activityTitle: intent.activityTitle,
+      oldMinutes: intent.oldMinutes,
+      newMinutes: intent.newMinutes,
+    };
+  } else if (intent.kind === 'delete-record') {
+    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message });
+    agentPendingAction = { type: 'delete-record', recordId: intent.recordId };
+  } else {
+    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message });
+  }
+
+  isAgentThinking = false;
+  render();
+  scrollAgentToBottom();
+}
+
+async function confirmAgentAction() {
+  if (!agentPendingAction) return;
+  const action = agentPendingAction;
+  isAgentThinking = true;
+  render();
+
+  try {
+    if (action.type === 'create-record') {
+      const saved = await saveMockRecord(action.preview);
+      upsertRecentRecord(saved);
+      agentMessages.push({ id: Date.now(), role: 'agent', content: '已经保存这条记录。你可以继续补充，或者让我查询今天的记录。', recordIds: [saved.recordId] });
+    } else if (action.type === 'update-duration') {
+      const record = recentRecords.find((item) => item.recordId === action.recordId);
+      if (!record) throw new Error('这条记录已经不存在，无法继续修改。');
+      const activities = record.activities.map((activity, index) => index === action.activityIndex
+        ? { ...activity, durationMinutes: action.newMinutes, estimated: false }
+        : { ...activity });
+      const dimensionSummary = summarizeDimensions(activities);
+      const saved = await saveMockRecord({
+        lifeDate: record.lifeDate,
+        content: replaceDurationInContent(record.content, action.oldMinutes, action.newMinutes, action.activityTitle),
+        summary: buildRecordSummary(dimensionSummary, record.stateDescription),
+        stateDescription: record.stateDescription,
+        activities,
+        dimensionSummary,
+        needsConfirmation: activities.some((activity) => activity.estimated),
+      }, record.recordId);
+      upsertRecentRecord(saved);
+      agentMessages.push({ id: Date.now(), role: 'agent', content: `已经把“${action.activityTitle}”从 ${formatDuration(action.oldMinutes)}改为 ${formatDuration(action.newMinutes)}。`, recordIds: [saved.recordId] });
+    } else {
+      recentRecords = await deleteMockRecord(action.recordId);
+      recordFeedback = recordFeedback.filter((item) => item.recordId !== action.recordId);
+      agentMessages.push({ id: Date.now(), role: 'agent', content: '这条记录已经从本机删除。' });
+      if (agentContextRecordId === action.recordId) agentContextRecordId = null;
+    }
+  } catch (error) {
+    agentMessages.push({ id: Date.now(), role: 'agent', content: error instanceof Error ? error.message : '操作失败，请稍后再试。' });
+  }
+
+  agentPendingAction = null;
+  isAgentThinking = false;
+  render();
+  scrollAgentToBottom();
+}
+
+function cancelAgentAction() {
+  agentPendingAction = null;
+  agentMessages.push({ id: Date.now(), role: 'agent', content: '已取消，没有更改任何记录。' });
+  render();
+  scrollAgentToBottom();
+}
+
+function upsertRecentRecord(record: TodayRecord) {
+  recentRecords = [record, ...recentRecords.filter((item) => item.recordId !== record.recordId)]
+    .sort((a, b) => b.lifeDate.localeCompare(a.lifeDate) || b.createdAt.localeCompare(a.createdAt));
+}
+
+function buildRecordSummary(dimensions: TodayRecord['dimensionSummary'], stateDescription: string) {
+  const [first, second] = dimensions;
+  const stateCopy = stateDescription ? `你还提到自己${stateDescription}。` : '';
+  return second
+    ? `从这段记录看，投入较多的是${first.dimension}，同时也记录了${second.dimension}。${stateCopy}`
+    : `从这段记录看，今天主要记录了${first.dimension}相关的生活片段。${stateCopy}`;
+}
+
+function replaceDurationInContent(content: string, oldMinutes: number, newMinutes: number, activityTitle: string) {
+  const oldPattern = oldMinutes % 60 === 0
+    ? new RegExp(`${oldMinutes / 60}\\s*(?:个)?\\s*小时`)
+    : new RegExp(`${oldMinutes}\\s*分钟`);
+  if (oldPattern.test(content)) return content.replace(oldPattern, formatDuration(newMinutes));
+  return `${content}（Agent 修正：${activityTitle} ${formatDuration(newMinutes)}）`;
+}
+
+function scrollAgentToBottom() {
+  window.requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
 }
 
 async function initialize() {
@@ -574,8 +876,7 @@ async function confirmPreview() {
   render();
   try {
     const saved = await saveMockRecord(recordPreview, editingRecordId);
-    recentRecords = [saved, ...recentRecords.filter((record) => record.recordId !== saved.recordId)]
-      .sort((a, b) => b.lifeDate.localeCompare(a.lifeDate) || b.createdAt.localeCompare(a.createdAt));
+    upsertRecentRecord(saved);
     recordPreview = null;
     recordDraft = '';
     editingRecordId = null;
@@ -601,7 +902,7 @@ function editRecord(recordId: number) {
   recordMessage = '正在修正这条记录，重新发送并确认后会覆盖旧版本。';
   activeTab = 'today';
   render();
-  window.scrollTo(0, document.body.scrollHeight);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.focus();
 }
 
@@ -691,6 +992,7 @@ function renderIcon(name: IconName) {
   }
 
   const iconNodes: Record<Exclude<IconName, 'robot'>, IconNode> = {
+    back: ArrowLeft,
     home: House,
     life: Sprout,
     user: UserRound,
@@ -734,6 +1036,17 @@ function formatCoin(minutes: number) {
 function formatLifeDate(value: string) {
   return new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })
     .format(new Date(`${value}T00:00:00`));
+}
+
+function formatHeaderDate(date: Date) {
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  return `${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
+}
+
+function formatClockTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
 }
 
 function todayValue() {

@@ -12,11 +12,15 @@ type ActivityRule = {
 
 const activityRules: ActivityRule[] = [
   {
-    keywords: ['bug', '代码', '工作', '开会', '方案', '加班', '文档'],
+    keywords: ['bug', '代码', '工作', '上班', '开会', '方案', '加班', '文档'],
     dimension: '创造',
     domain: '工作',
     fallbackMinutes: 480,
-    title: (content) => content.toLowerCase().includes('bug') ? '处理工作中的 bug' : '处理工作事项',
+    title: (content) => content.toLowerCase().includes('bug')
+      ? '处理工作中的 bug'
+      : content.includes('上班')
+        ? '上班'
+        : '处理工作事项',
   },
   {
     keywords: ['学习', '英语', '口语', '读书', '课程', '练习'],

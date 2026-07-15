@@ -1,4 +1,25 @@
 import './styles.css';
+import {
+  ArrowUp,
+  CalendarDays,
+  ChevronRight,
+  CircleCheck,
+  CircleQuestionMark,
+  Clock3,
+  DatabaseBackup,
+  Download,
+  HeartHandshake,
+  House,
+  Info,
+  PencilLine,
+  ShieldCheck,
+  Sparkles,
+  Sprout,
+  Trash2,
+  UserRound,
+  createElement as createLucideElement,
+  type IconNode,
+} from 'lucide';
 import { LIFE_MINUTES_PER_COIN, summarizeDimensions } from './mock/analysis.ts';
 import {
   clearMockUserData,
@@ -23,7 +44,7 @@ import {
 
 type Tab = 'today' | 'life' | 'me';
 type LifeView = 'insights' | 'records';
-type IconName = 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check';
+type IconName = 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) throw new Error('App root element not found');
@@ -42,6 +63,7 @@ let isAnalyzingRecord = false;
 let isWorldviewExpanded = false;
 let isLoading = true;
 let isClearDataConfirming = false;
+let isAccountDirty = false;
 let formMessage = '';
 let recordMessage = '';
 let feedbackMessage = '';
@@ -84,17 +106,17 @@ function renderToday() {
   return `
     <section class="screen today-screen">
       <section class="balance-panel">
+        <button class="balance-agent-shortcut" type="button" data-record-shortcut aria-label="开始记录今天">${renderIcon('robot')}</button>
         <div class="balance-title">
           <p class="eyebrow">人生余额</p>
           <button class="icon-button" type="button" data-worldview-toggle aria-expanded="${isWorldviewExpanded}" aria-label="了解人生余额">${renderIcon('info')}</button>
         </div>
         <h1>${formatNumber(account.remainingLifeDays)}<span> 元</span></h1>
-        <p>今天也会花掉 1 元人生</p>
-        <p class="date-line">${todayLabel}</p>
+        <div class="balance-meta"><span>今天也会花掉 1 元人生</span><time>${todayLabel}</time></div>
         ${isWorldviewExpanded ? '<p class="worldview-explanation">1 天 = 1 元人生，24 小时共同组成这 1 元。记录不是为了补齐每一分钟，而是帮助你看见那些值得回看的生活片段。</p>' : ''}
       </section>
 
-      <section class="agent-panel">
+      <section class="agent-panel agent-intro">
         <div class="agent-avatar" aria-hidden="true">${renderIcon('robot')}</div>
         <div class="agent-bubble">
           <p>${dayRecords.length > 0 ? `这一天已经记录了 ${dayRecords.length} 个片段，还想补充什么？` : '今天这一元，哪些片段值得记住？'}</p>
@@ -105,9 +127,9 @@ function renderToday() {
       <section class="quick-record" aria-label="表达提示">
         <p>不知道怎么开始？</p>
         <div>
-          <button type="button" data-quick-prompt="今天主要做了">今天主要做了…</button>
-          <button type="button" data-quick-prompt="最花时间的是">最花时间的是…</button>
-          <button type="button" data-quick-prompt="今天让我感觉">今天让我感觉…</button>
+          <button type="button" data-quick-prompt="今天主要做了">${renderIcon('sparkles')}今天主要做了…</button>
+          <button type="button" data-quick-prompt="最花时间的是">${renderIcon('clock')}最花时间的是…</button>
+          <button type="button" data-quick-prompt="今天让我感觉">${renderIcon('heart')}今天让我感觉…</button>
         </div>
       </section>
 
@@ -297,7 +319,7 @@ function renderLifeInsights() {
         </div>
       </section>
 
-      <button type="button" class="text-action" data-life-view="records">查看全部历史记录</button>
+      <button type="button" class="text-action" data-life-view="records"><span>查看全部历史记录</span>${renderIcon('chevron')}</button>
     </section>
   `;
 }
@@ -349,15 +371,15 @@ function renderMe() {
         <form class="account-form" id="account-form">
           <label><span>${renderIcon('calendar')} 出生日期</span><input name="birthday" type="date" max="${todayValue()}" value="${birthday}" required /></label>
           <label><span>${renderIcon('life')} 预期寿命</span><span class="number-field"><input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" required /><em>岁</em></span></label>
-          <button class="primary-action" type="submit">${account ? '保存修改' : '生成我的人生余额'}</button>
+          <button class="primary-action account-save" type="submit" ${account && !isAccountDirty ? 'disabled' : ''}>${account ? '保存修改' : '生成我的人生余额'}</button>
           <p class="form-message">${escapeHtml(formMessage)}</p>
         </form>
       </section>
 
-      <section class="settings-section privacy-card">
-        <div class="settings-title"><div><p class="eyebrow">隐私说明</p><h2>当前数据只保存在此浏览器</h2></div>${renderIcon('shield')}</div>
+      <details class="settings-section privacy-card">
+        <summary><span><small>隐私说明</small><strong>当前数据只保存在此浏览器</strong></span>${renderIcon('shield')}</summary>
         <p>这个前端 Demo 不会把生日、记录或反馈发送到后端。清除浏览器数据后将无法恢复，你可以先导出备份。</p>
-      </section>
+      </details>
 
       <section class="settings-section data-card">
         <div class="settings-title"><div><p class="eyebrow">数据管理</p><h2>${recordDays} 个记录日 · ${recentRecords.length} 条记录</h2></div>${renderIcon('database')}</div>
@@ -378,7 +400,7 @@ function renderMe() {
         </form>
       </section>
 
-      <p class="me-version">Life Wallet · H5 Demo v0.2</p>
+      <p class="me-version">Life Wallet · H5 Demo v0.3</p>
     </section>
   `;
 }
@@ -414,6 +436,13 @@ function bindEvents() {
       render();
       document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.focus();
     });
+  });
+
+  // 余额区的 Agent 入口不是装饰按钮：点击后直接进入当天记录输入。
+  document.querySelector<HTMLButtonElement>('[data-record-shortcut]')?.addEventListener('click', () => {
+    const textarea = document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]');
+    textarea?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    textarea?.focus({ preventScroll: true });
   });
 
   document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.addEventListener('input', (event) => {
@@ -461,6 +490,14 @@ function bindEvents() {
     void saveAccount({
       birthday: String(formData.get('birthday') ?? ''),
       expectedLifeYears: Number(formData.get('expectedLifeYears')),
+    });
+  });
+
+  document.querySelectorAll<HTMLInputElement>('#account-form input').forEach((input) => {
+    input.addEventListener('input', () => {
+      isAccountDirty = true;
+      const saveButton = document.querySelector<HTMLButtonElement>('.account-save');
+      if (saveButton) saveButton.disabled = false;
     });
   });
 
@@ -590,6 +627,7 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
   render();
   try {
     account = await saveMockAccount(payload);
+    isAccountDirty = false;
     formMessage = '人生账户已保存，可以返回 Today 开始记录。';
   } catch (error) {
     formMessage = error instanceof Error ? error.message : '保存失败，请稍后再试。';
@@ -629,6 +667,7 @@ async function handleClearData(action: string) {
   recordPreview = null;
   recordDraft = '';
   isClearDataConfirming = false;
+  isAccountDirty = false;
   formMessage = '本机中的 Life Wallet 数据已清除。';
   render();
 }
@@ -646,23 +685,36 @@ async function submitGeneralFeedback(content: string) {
 }
 
 function renderIcon(name: IconName) {
-  const paths: Record<IconName, string> = {
-    home: '<path d="M3.5 10.5 12 3.7l8.5 6.8"/><path d="M5.8 9.3v10h12.4v-10"/><path d="M9.5 19.3v-5.5h5v5.5"/>',
-    life: '<path d="M12 20v-7"/><path d="M12 13c-4.1 0-7-2.2-7-6.6 4.7 0 7 2.3 7 6.6Z"/><path d="M12 16c4.1 0 7-2.2 7-6.6-4.7 0-7 2.3-7 6.6Z"/><path d="M7.5 20h9"/>',
-    user: '<circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c.4-4.3 2.6-6.5 6.5-6.5s6.1 2.2 6.5 6.5"/>',
-    info: '<circle cx="12" cy="12" r="9"/><path d="M12 10.8v5.4"/><path d="M12 7.5h.01"/>',
-    robot: '<rect x="4" y="6.5" width="16" height="12" rx="4"/><path d="M12 3v3.5"/><circle cx="12" cy="2.8" r="1"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><path d="M9.2 15.3c1.8 1 3.8 1 5.6 0"/>',
-    send: '<path d="m6 12 6-6 6 6"/><path d="M12 6v12"/>',
-    calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/>',
-    edit: '<path d="M4 20h4l11-11-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
-    shield: '<path d="M12 3 5 6v5c0 4.6 2.7 8 7 10 4.3-2 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/>',
-    database: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v12c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
-    help: '<circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.4 2.4 0 0 1 4.7.7c0 1.8-2.5 2-2.5 4"/><path d="M12 17.2h.01"/>',
-    download: '<path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/>',
-    trash: '<path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7"/><path d="M10 11v6M14 11v6"/>',
-    check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 2.6 2.6L16.5 9"/>',
+  // 机器人承担品牌识别，保留定制图形；其余功能图标统一使用 Lucide，避免线宽与造型混乱。
+  if (name === 'robot') {
+    return '<svg class="icon icon-robot" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3"/><circle cx="12" cy="2.8" r="1.2" fill="#45ad69" stroke="none"/><rect x="4" y="6" width="16" height="13" rx="5" fill="#f7fcf8"/><rect x="6.6" y="8.5" width="10.8" height="7.4" rx="2.8" fill="currentColor" stroke="none"/><circle cx="9.8" cy="12.2" r="1" fill="#bff0c8" stroke="none"/><circle cx="14.2" cy="12.2" r="1" fill="#bff0c8" stroke="none"/><path d="M9.5 17.3c1.6.7 3.4.7 5 0"/></svg>';
+  }
+
+  const iconNodes: Record<Exclude<IconName, 'robot'>, IconNode> = {
+    home: House,
+    life: Sprout,
+    user: UserRound,
+    info: Info,
+    send: ArrowUp,
+    calendar: CalendarDays,
+    edit: PencilLine,
+    shield: ShieldCheck,
+    database: DatabaseBackup,
+    help: CircleQuestionMark,
+    download: Download,
+    trash: Trash2,
+    check: CircleCheck,
+    sparkles: Sparkles,
+    clock: Clock3,
+    heart: HeartHandshake,
+    chevron: ChevronRight,
   };
-  return `<svg class="icon icon-${name}" viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`;
+
+  return createLucideElement(iconNodes[name], {
+    class: `icon icon-${name}`,
+    'aria-hidden': 'true',
+    'stroke-width': 1.85,
+  }).outerHTML;
 }
 
 function formatNumber(value: number) {

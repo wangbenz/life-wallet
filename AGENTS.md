@@ -1,83 +1,43 @@
 # AGENTS.md
 
-## Project Overview
+## Project
 
-This project is an Agent-powered Life Wallet application developed from idea discovery to MVP delivery.
+Life Wallet 是 Agent First 的人生理解产品。当前阶段是独立 H5 Mock 的用户验证；后端能力保留，但展示版不与后端交互。
 
-The project follows this workflow:
+当前不要开发完整微信小程序。只有用户明确要求 Agent 实现时，才推进最小自定义 Agent 循环、Tools 和对话状态。
 
-```text
-Idea
-→ Product Discovery
-→ Product Definition
-→ MVP Design
-→ Architecture
-→ Coding
-→ Testing
-→ Deployment
-→ Iteration
-```
+## Required Reading
 
-## Current Stage
-
-Current stage: H5 Demo Coding / Agent Learning.
-
-Milestones 1-5 of the H5 Demo are implemented. The current learning direction is to evolve the deterministic Agent pipeline into a minimal custom Agent with an explicit loop, Tools, and conversation state before considering LangChain4j.
-
-## Required Reading Before Any Project Work
+任何项目工作先读：
 
 - `README.md`
 - `docs/01-product/00-current-status.md`
 
-Read the relevant source of truth for the task:
+再按任务读取一份或少量相关事实源：
 
-- Agent scope, protocol, Tools, state, or learning work: `docs/02-architecture/04-agent-design.md`
-- Product scope changes: `docs/01-product/03-product-definition.md` and `docs/01-product/06-mvp-coding-readiness.md`
-- Activity or classification changes: `docs/01-product/08-life-ontology.md`
-- Architecture or API changes: `docs/02-architecture/01-technical-architecture.md` and `docs/02-architecture/03-api-design.md`
-- Delivery work: `docs/03-delivery/01-task-breakdown.md`
+- 产品边界：`docs/01-product/03-product-definition.md`
+- Activity / 分类 / 人生币：`docs/01-product/08-life-ontology.md`
+- 架构：`docs/02-architecture/01-technical-architecture.md`
+- API：`docs/02-architecture/03-api-design.md`
+- Agent：`docs/02-architecture/04-agent-design.md`
+- 任务：`docs/03-delivery/01-task-breakdown.md`
+- 本地运行 / 部署：`docs/03-delivery/02-operations.md`
 
-The handbook, Idea, Discovery, concept validation, old MVP Design, open questions, and Decision Log are history/reference documents. Read them only when the task needs rationale or traceability.
-
-## Required Reading Before Code Changes
-
-Do not make code changes unless explicitly requested and the required product / architecture / task documents are ready.
-
-Before any future code changes, read the current-status document first, then read only the relevant design and delivery documents.
-
-For Agent architecture or coding work, also read:
-
-- `docs/01-product/06-mvp-coding-readiness.md`
-- `docs/02-architecture/01-technical-architecture.md`
-- `docs/02-architecture/03-api-design.md`
-- `docs/02-architecture/04-agent-design.md`
-- `docs/03-delivery/01-task-breakdown.md`
-
-## Current Product Task
-
-Current planning direction: preserve the working H5 Demo and build the smallest custom Agent vertical slice described in `docs/02-architecture/04-agent-design.md` when the user explicitly requests code implementation.
-
-Milestone 6 feedback and test environment remains in the delivery backlog; do not mix it into an Agent-runtime task unless explicitly requested.
-
-Do not build the full WeChat Mini Program yet. Implement only the first H5 Agent Demo scope described in the readiness, architecture, API, and task breakdown documents.
+`docs/archive/` 只用于历史追溯，不是当前实现依据。
 
 ## Development Rules
 
-- Implement only the requested task.
-- Do not silently change product scope.
-- Do not introduce unrelated dependencies.
-- Keep changes small, reviewable, and reversible.
-- Update docs before code when product understanding changes.
-- When updating `AGENTS.md`, also check and update `CLAUDE.md` so agent instructions stay synchronized.
-- Write clear Chinese comments for important frontend and backend code paths so the project owner can understand the implementation.
-- Comments should explain business intent, Agent workflow, data flow, validation, and non-obvious decisions; avoid noisy line-by-line comments for self-explanatory code.
-- Add or update tests when behavior changes.
-- Run relevant tests after implementation when possible.
+- 只实现用户请求的任务，不静默扩大产品范围。
+- 产品理解变化时先更新对应事实源；优先更新现有文档，不为一次讨论新增文档。
+- 保持改动小、可审查、可回滚，不引入无关依赖。
+- 不删除功能或文档，除非用户明确要求。
+- 重要前后端路径使用清晰中文注释，说明业务意图、数据流、验证和非显然决策，避免逐行噪声。
+- 行为变化时更新测试，并尽可能运行相关验证。
+- 修改 `AGENTS.md` 时同步检查 `CLAUDE.md`。
 
-## Forbidden Actions
+## Boundaries
 
-- Do not jump into full WeChat Mini Program implementation.
-- Do not remove existing features or documents without explicit instruction.
-- Do not hardcode secrets.
-- Do not skip input validation.
-- Do not expand Agent capabilities beyond documented boundaries.
+- 不硬编码秘密，不跳过输入验证。
+- 不把前端 Mock 结果描述为真实 Agent 能力。
+- 不扩展为通用问答、心理治疗、社交、打卡成就或复杂个人数据平台。
+- 不直接引入完整微信小程序、复杂 Memory、RAG 或 Agent 框架。

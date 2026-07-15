@@ -2,7 +2,7 @@
 
 Status: Active
 Stage: H5 Demo Coding / Agent Learning
-Last Updated: 2026-07-14
+Last Updated: 2026-07-15
 Owner: Human + ChatGPT + Codex
 
 ## Project Overview
@@ -20,7 +20,11 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 Agent First 的 AI 人�
 
 当前前端原型包括人生账户初始化、自然语言记录、关键词驱动的本地 Mock 理解、账单预览编辑、确认保存、准确度反馈，以及基于真实本地记录的 Life 洞察 / 记录和精简 Me 页面。成就、连续打卡、假趋势和无功能入口已退出首版。Mock 数据与函数统一放在 `frontend/src/mock/`，账户、记录与反馈使用 `localStorage` 保存。
 
-下一步优先部署当前 H5 原型，并邀请 5-10 个目标用户完成 7 个记录日验证；Agent 学习主线仍是实现带循环、Tool 和对话状态的最小自定义 Agent，再逐步评估真实模型和 LangChain4j。
+当前视觉以产品原型为基准，统一为“清爽小程序 + 温和生活手账”：使用柔和绿色氛围、精致白色内容卡和明确的绿色主操作；Today 突出人生余额与自然语言输入，Life 突出基于真实记录的阶段洞察，Me 使用一致的设置卡片。页面仍为真实 H5，不包含假手机框和假系统状态栏。
+
+通用功能图标使用按需导入的 Lucide，品牌 Agent 机器人保留项目自绘；按钮、标签、输入框、进度条和浮动底部导航包含轻量微交互，并遵守系统的“减少动态效果”设置。
+
+当前 H5 原型已完成首轮京东云静态部署，Nginx 使用 `15173` 端口提供服务，公网访问已验证。下一步邀请 5-10 个目标用户完成 7 个记录日验证。Agent 学习主线仍是实现带循环、Tool 和对话状态的最小自定义 Agent，再逐步评估真实模型和 LangChain4j。
 
 ## Workflow
 
@@ -38,20 +42,11 @@ Idea
 
 ## Start Here
 
-日常开发先读以下文档，不需要每次重读全部历史资料：
+1. `docs/README.md`：文档地图。
+2. `docs/01-product/00-current-status.md`：当前事实、边界和下一步。
+3. 按任务读取对应产品、架构或交付文档，不需要重读全部历史材料。
 
-1. `docs/01-product/00-current-status.md`：事实进度与下一任务。
-2. `docs/02-architecture/04-agent-design.md`：MVP、Agent 协议、Tool、状态与学习路线。
-3. `docs/03-delivery/01-task-breakdown.md`：已完成和待完成任务。
-4. `docs/03-delivery/02-local-development.md`：本地启动和测试。
-
-按任务补充阅读：
-
-- 产品边界：`docs/01-product/03-product-definition.md`、`docs/01-product/06-mvp-coding-readiness.md`。
-- 领域规则：`docs/01-product/08-life-ontology.md`。
-- 架构 / API：`docs/02-architecture/01-technical-architecture.md`、`docs/02-architecture/03-api-design.md`。
-- 决策追溯：`docs/04-governance/01-decision-log.md`。
-- 方法论与早期探索：`docs/00-handbook/`、Idea、Discovery、概念验证和旧版 MVP Design；只在需要追溯时阅读。
+Idea、Discovery、旧 MVP、编码准备度、决策日志和方法论已统一移到 `docs/archive/`，只用于追溯。
 
 ## Working Rule
 
@@ -68,3 +63,5 @@ pnpm dev
 ```
 
 打开 `http://127.0.0.1:5173` 即可体验，不需要启动后端。后端代码仍保留在 `backend/`，用于后续恢复真实 API 集成，不应把前端 Mock 数据视为真实 Agent 分析结果。
+
+本地测试、京东云发布和回滚见 `docs/03-delivery/02-operations.md`。

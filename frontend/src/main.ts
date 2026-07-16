@@ -3,21 +3,26 @@ import {
   ArrowLeft,
   ArrowUp,
   CalendarDays,
+  ChartNoAxesColumnIncreasing,
   ChevronRight,
   CircleCheck,
-  CircleQuestionMark,
   Clock3,
   DatabaseBackup,
   Download,
   HeartHandshake,
   House,
   Info,
+  MessageCircleHeart,
+  MessageCircleQuestion,
+  NotebookTabs,
   PencilLine,
+  Settings2,
   ShieldCheck,
   Sparkles,
   Sprout,
   Trash2,
   UserRound,
+  WalletCards,
   createElement as createLucideElement,
   type IconNode,
 } from 'lucide';
@@ -46,7 +51,7 @@ import {
 
 type Tab = 'today' | 'life' | 'me';
 type LifeView = 'insights' | 'records';
-type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'robot' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron';
+type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'agent' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron' | 'insights' | 'records' | 'settings' | 'wallet';
 type AgentMessage = { id: number; role: 'agent' | 'user'; content: string; recordIds?: number[] };
 type AgentPendingAction =
   | { type: 'create-record'; preview: RecordPreview }
@@ -122,7 +127,7 @@ function renderToday() {
       <header class="today-header">
         <time datetime="${todayValue()}">${todayLabel}</time>
         <button class="agent-entry" type="button" data-open-agent aria-label="打开 Life Agent 对话">
-          ${renderIcon('robot')}
+          ${renderIcon('agent')}
           <span>Life Agent</span>
         </button>
       </header>
@@ -180,7 +185,7 @@ function renderSubmittedRecordBubble() {
 function renderAgentMessage(message: string) {
   return `
     <section class="agent-panel processing-message">
-      <div class="agent-avatar" aria-hidden="true">${renderIcon('robot')}</div>
+      <div class="agent-avatar" aria-hidden="true">${renderIcon('agent')}</div>
       <div class="agent-bubble muted"><p>${message}</p><span class="thinking-dots"><i></i><i></i><i></i></span></div>
     </section>
   `;
@@ -246,9 +251,9 @@ function renderSavedRecord(record: TodayRecord) {
   const totalMinutes = record.dimensionSummary.reduce((sum, item) => sum + item.durationMinutes, 0);
   return `
     <article class="saved-record-card">
-      <div class="saved-source"><p>${escapeHtml(record.content)}</p><div class="saved-actions"><button type="button" data-agent-record="${record.recordId}">${renderIcon('robot')} Agent 修改</button><button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button></div></div>
+      <div class="saved-source"><p>${escapeHtml(record.content)}</p><div class="saved-actions"><button type="button" data-agent-record="${record.recordId}">${renderIcon('agent')} Agent 修改</button><button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button></div></div>
       <div class="analysis-heading">
-        <div class="agent-avatar small" aria-hidden="true">${renderIcon('robot')}</div>
+        <div class="agent-avatar small" aria-hidden="true">${renderIcon('agent')}</div>
         <div><p class="eyebrow">我理解的是</p><p>${escapeHtml(record.summary)}</p></div>
       </div>
       <div class="dimension-list">
@@ -289,12 +294,14 @@ function renderLife() {
   if (activeTab !== 'life') return '';
   return `
     <section class="screen life-screen">
-      <header class="page-heading">
-        <h1>人生</h1>
-        <p>从真实记录里，看见生活正在发生什么。</p>
+      <header class="page-heading life-heading">
+        <div class="page-heading-row">
+          <div><p class="page-kicker">${renderIcon('life')} Life Review</p><h1>人生</h1><p>从真实记录里，看见时间正在流向哪里。</p></div>
+          <span class="heading-symbol" aria-hidden="true">${renderIcon('insights')}</span>
+        </div>
         <div class="segmented" aria-label="人生视图">
-          <button type="button" data-life-view="insights" class="${activeLifeView === 'insights' ? 'active' : ''}" aria-pressed="${activeLifeView === 'insights'}">洞察</button>
-          <button type="button" data-life-view="records" class="${activeLifeView === 'records' ? 'active' : ''}" aria-pressed="${activeLifeView === 'records'}">记录</button>
+          <button type="button" data-life-view="insights" class="${activeLifeView === 'insights' ? 'active' : ''}" aria-pressed="${activeLifeView === 'insights'}">${renderIcon('insights')} 洞察</button>
+          <button type="button" data-life-view="records" class="${activeLifeView === 'records' ? 'active' : ''}" aria-pressed="${activeLifeView === 'records'}">${renderIcon('records')} 记录</button>
         </div>
       </header>
       ${activeLifeView === 'insights' ? renderLifeInsights() : renderLifeRecords()}
@@ -315,38 +322,47 @@ function renderLifeInsights() {
   const progress = Math.min(100, (recordDates.length / 7) * 100);
   const top = dimensions[0];
   const second = dimensions[1];
+  const recordedCoin = totalMinutes / LIFE_MINUTES_PER_COIN;
 
   return `
     <section class="life-view-panel">
-      <section class="insight-progress-card">
-        <div><p class="eyebrow">第一份阶段回看</p><strong>${recordDates.length >= 7 ? '已生成' : `还差 ${7 - recordDates.length} 个记录日`}</strong></div>
-        <div class="progress-track"><i style="width:${progress}%"></i></div>
-        <p>按记录日累计，不要求连续打卡。</p>
+      <section class="life-overview-card">
+        <header><span class="section-icon">${renderIcon('insights')}</span><div><p class="eyebrow">${selectedDates.length >= 7 ? '最近 7 个记录日' : '当前记录样本'}</p><h2>${recordDates.length >= 3 ? '生活正在有迹可循' : '先收集真实片段'}</h2></div></header>
+        <div class="life-metric-grid">
+          <div><span>记录日</span><strong>${recordDates.length}<em>天</em></strong><small>不要求连续</small></div>
+          <div><span>生活片段</span><strong>${selectedRecords.length}<em>条</em></strong><small>仅已确认</small></div>
+          <div><span>覆盖人生</span><strong>${recordedCoin.toFixed(2)}<em>元</em></strong><small>${formatDuration(totalMinutes)}</small></div>
+        </div>
+        <div class="review-progress">
+          <div><span>第一份阶段回看</span><strong>${recordDates.length >= 7 ? '已达到样本量' : `还差 ${7 - recordDates.length} 个记录日`}</strong></div>
+          <div class="progress-track" aria-label="阶段回看进度 ${Math.round(progress)}%"><i style="width:${progress}%"></i></div>
+        </div>
       </section>
 
       ${recordDates.length < 3 ? `
-        <section class="insight-card gentle">
-          <span class="agent-avatar small">${renderIcon('robot')}</span>
-          <div><p class="eyebrow">先不急着下结论</p><h2>已经留下 ${recordDates.length} 个记录日</h2><p>至少积累 3 个记录日后，我再开始比较变化，避免用太少的数据定义你的生活。</p></div>
+        <section class="insight-card gentle life-agent-note">
+          <span class="agent-avatar small">${renderIcon('agent')}</span>
+          <div><p class="eyebrow">Life Agent 的观察</p><h2>现在更适合记录，不急着定义</h2><p>已经留下 ${recordDates.length} 个记录日。至少积累 3 个记录日后，我再开始比较变化，避免用太少的数据定义你的生活。</p></div>
         </section>
       ` : `
-        <section class="insight-card">
-          <span class="agent-avatar small">${renderIcon('robot')}</span>
-          <div><p class="eyebrow">基于最近 ${selectedDates.length} 个记录日</p><h2>${escapeHtml(top.dimension)}是已记录时间中最多的维度</h2><p>这些记录里，${escapeHtml(top.dimension)}约 ${formatDuration(top.durationMinutes)}${second ? `，其次是${escapeHtml(second.dimension)}约 ${formatDuration(second.durationMinutes)}` : ''}。这反映的是你主动记录的片段，不代表完整的 24 小时。</p></div>
+        <section class="insight-card life-agent-note">
+          <span class="agent-avatar small">${renderIcon('agent')}</span>
+          <div><p class="eyebrow">Life Agent 的观察</p><h2>${escapeHtml(top.dimension)}是已记录片段里最多的维度</h2><p>最近 ${selectedDates.length} 个记录日里，${escapeHtml(top.dimension)}约 ${formatDuration(top.durationMinutes)}${second ? `，其次是${escapeHtml(second.dimension)}约 ${formatDuration(second.durationMinutes)}` : ''}。它只反映你主动留下的片段，不代表完整的 24 小时。</p></div>
         </section>
       `}
 
       <section class="distribution-card">
-        <div class="card-heading"><div><p class="eyebrow">已记录时间占比</p><h2>${selectedDates.length} 个记录日</h2></div><span>共 ${formatDuration(totalMinutes)}</span></div>
+        <div class="card-heading"><div class="section-heading-copy"><span class="section-icon pale">${renderIcon('records')}</span><div><p class="eyebrow">已记录时间分布</p><h2>${selectedDates.length} 个记录日</h2></div></div><span>共 ${formatDuration(totalMinutes)}</span></div>
         <div class="distribution-list">
           ${dimensions.map((item) => {
             const percent = totalMinutes > 0 ? Math.round((item.durationMinutes / totalMinutes) * 100) : 0;
             return `<div><header><span>${escapeHtml(item.dimension)}</span><strong>${percent}%</strong></header><div><i style="width:${percent}%"></i></div><small>${formatDuration(item.durationMinutes)} · ${item.lifeCoinAmount.toFixed(2)} 元</small></div>`;
           }).join('')}
         </div>
+        <p class="data-scope-note">${renderIcon('info')} 这里只计算你确认过的记录，不补全未记录时间。</p>
       </section>
 
-      <button type="button" class="text-action" data-life-view="records"><span>查看全部历史记录</span>${renderIcon('chevron')}</button>
+      <button type="button" class="text-action life-records-action" data-life-view="records"><span>${renderIcon('records')} 查看全部历史记录</span>${renderIcon('chevron')}</button>
     </section>
   `;
 }
@@ -356,22 +372,28 @@ function renderLifeRecords() {
     return renderEmptyState('这里会保存你的生活片段', '记录不需要连续，也不需要补齐全天。', '去记录第一条', 'today');
   }
 
+  const recordDays = new Set(recentRecords.map((record) => record.lifeDate)).size;
+  const totalMinutes = recentRecords.flatMap((record) => record.activities).reduce((sum, activity) => sum + activity.durationMinutes, 0);
+
   return `
     <section class="life-view-panel history-panel">
-      <div class="section-heading"><div><p class="eyebrow">真实记录</p><h2>${new Set(recentRecords.map((record) => record.lifeDate)).size} 个记录日</h2></div><span>${recentRecords.length} 条</span></div>
+      <section class="records-overview">
+        <div><span class="section-icon">${renderIcon('records')}</span><div><p class="eyebrow">全部真实记录</p><h2>${recordDays} 个记录日</h2></div></div>
+        <div><span>${recentRecords.length} 条记录</span><strong>${formatDuration(totalMinutes)}</strong></div>
+      </section>
       <div class="history-list">
         ${recentRecords.map((record) => `
           <article class="history-card">
-            <header><time>${formatLifeDate(record.lifeDate)}</time><span>${record.activities.length} 个生活片段</span></header>
+            <header><time>${formatLifeDate(record.lifeDate)}</time><span>${renderIcon('records')} ${record.activities.length} 个片段</span></header>
             <p class="history-source">${escapeHtml(record.content)}</p>
             <p class="history-summary">${escapeHtml(record.summary)}</p>
             <div class="history-tags">${record.dimensionSummary.map((item) => `<span>${escapeHtml(item.dimension)} · ${formatDuration(item.durationMinutes)}</span>`).join('')}</div>
             <footer>
-              <button type="button" data-agent-record="${record.recordId}">${renderIcon('robot')} Agent 修改</button>
+              <button type="button" data-agent-record="${record.recordId}">${renderIcon('agent')} Agent 修改</button>
               <button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button>
               ${pendingDeleteRecordId === record.recordId
                 ? `<button type="button" class="danger" data-delete-record="${record.recordId}" data-delete-action="confirm">确认删除</button><button type="button" data-delete-record="${record.recordId}" data-delete-action="cancel">取消</button>`
-                : `<button type="button" class="danger-text" data-delete-record="${record.recordId}" data-delete-action="ask">删除</button>`}
+                : `<button type="button" class="danger-text" data-delete-record="${record.recordId}" data-delete-action="ask">${renderIcon('trash')} 删除</button>`}
             </footer>
           </article>
         `).join('')}
@@ -389,13 +411,29 @@ function renderMe() {
   const birthday = account?.birthday ?? '1995-01-01';
   const expectedLifeYears = account?.expectedLifeYears ?? 80;
   const recordDays = new Set(recentRecords.map((record) => record.lifeDate)).size;
+  const recordedMinutes = recentRecords.flatMap((record) => record.activities).reduce((sum, activity) => sum + activity.durationMinutes, 0);
 
   return `
     <section class="screen me-screen">
-      <header class="page-heading simple-heading"><h1>我的</h1><p>管理人生余额和保存在本机的数据。</p></header>
+      <header class="page-heading me-heading">
+        <div class="page-heading-row">
+          <div><p class="page-kicker">${renderIcon('settings')} My Space</p><h1>我的</h1><p>管理账户依据、隐私和保存在本机的数据。</p></div>
+          <span class="heading-symbol peach" aria-hidden="true">${renderIcon('user')}</span>
+        </div>
+      </header>
 
-      <section class="settings-section account-settings">
-        <div class="settings-title"><div><p class="eyebrow">人生账户</p><h2>${account ? '调整余额依据' : '创建人生账户'}</h2></div><span>仅用于估算</span></div>
+      <section class="me-profile-card">
+        <div class="profile-identity"><span class="profile-symbol">${renderIcon('user')}</span><div><p class="eyebrow">我的人生账户</p><h2>${account ? `${formatNumber(account.remainingLifeDays)} 元人生` : '还没有创建账户'}</h2><span>${account ? `按 ${expectedLifeYears} 岁预期寿命估算` : '创建后生成你的人生余额'}</span></div></div>
+        <div class="local-status">${renderIcon('shield')} 仅保存在本机</div>
+        <div class="profile-metrics">
+          <div><span>记录日</span><strong>${recordDays}<em>天</em></strong></div>
+          <div><span>生活记录</span><strong>${recentRecords.length}<em>条</em></strong></div>
+          <div><span>覆盖人生</span><strong>${formatCoin(recordedMinutes)}<em>元</em></strong></div>
+        </div>
+      </section>
+
+      <section class="settings-section account-settings settings-group">
+        <div class="settings-group-heading"><span class="settings-icon mint">${renderIcon('wallet')}</span><div><p class="eyebrow">账户设置</p><h2>${account ? '调整余额依据' : '创建人生账户'}</h2><small>修改后会重新估算人生余额</small></div></div>
         <form class="account-form" id="account-form">
           <label><span>${renderIcon('calendar')} 出生日期</span><input name="birthday" type="date" max="${todayValue()}" value="${birthday}" required /></label>
           <label><span>${renderIcon('life')} 预期寿命</span><span class="number-field"><input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" required /><em>岁</em></span></label>
@@ -404,26 +442,26 @@ function renderMe() {
         </form>
       </section>
 
-      <details class="settings-section privacy-card">
-        <summary><span><small>隐私说明</small><strong>当前数据只保存在此浏览器</strong></span>${renderIcon('shield')}</summary>
+      <details class="settings-section privacy-card settings-group">
+        <summary><span class="settings-icon warm">${renderIcon('shield')}</span><span class="summary-copy"><small>隐私说明</small><strong>当前数据只保存在此浏览器</strong><em>展开查看数据边界</em></span>${renderIcon('chevron')}</summary>
         <p>这个前端 Demo 不会把生日、记录或反馈发送到后端。清除浏览器数据后将无法恢复，你可以先导出备份。</p>
       </details>
 
-      <section class="settings-section data-card">
-        <div class="settings-title"><div><p class="eyebrow">数据管理</p><h2>${recordDays} 个记录日 · ${recentRecords.length} 条记录</h2></div>${renderIcon('database')}</div>
-        <div class="data-actions">
-          <button type="button" data-export-data>${renderIcon('download')} 导出 JSON</button>
+      <section class="settings-section data-card settings-group">
+        <div class="settings-group-heading"><span class="settings-icon blue">${renderIcon('database')}</span><div><p class="eyebrow">数据管理</p><h2>${recordDays} 个记录日 · ${recentRecords.length} 条记录</h2><small>先备份，再进行清理</small></div></div>
+        <div class="data-actions settings-action-list">
+          <button type="button" class="settings-action" data-export-data><span class="action-symbol">${renderIcon('download')}</span><span><strong>导出 JSON 备份</strong><small>保存账户、记录与本地反馈</small></span>${renderIcon('chevron')}</button>
           ${isClearDataConfirming
-            ? '<button type="button" class="danger" data-clear-data="confirm">确认清除全部数据</button><button type="button" data-clear-data="cancel">取消</button>'
-            : `<button type="button" class="danger-text" data-clear-data="ask">${renderIcon('trash')} 清除数据</button>`}
+            ? '<div class="danger-confirm"><p>清除后无法恢复，确定删除本机全部数据吗？</p><div><button type="button" class="danger" data-clear-data="confirm">确认清除</button><button type="button" data-clear-data="cancel">取消</button></div></div>'
+            : `<button type="button" class="settings-action danger-text" data-clear-data="ask"><span class="action-symbol danger">${renderIcon('trash')}</span><span><strong>清除本机数据</strong><small>删除账户、记录与反馈</small></span>${renderIcon('chevron')}</button>`}
         </div>
       </section>
 
-      <section class="settings-section feedback-card">
-        <div class="settings-title"><div><p class="eyebrow">帮助与反馈</p><h2>这款产品哪里让你困惑？</h2></div>${renderIcon('help')}</div>
+      <section class="settings-section feedback-card settings-group">
+        <div class="settings-group-heading"><span class="settings-icon peach">${renderIcon('help')}</span><div><p class="eyebrow">帮助与反馈</p><h2>哪里让你感到困惑？</h2><small>反馈只保存在当前浏览器</small></div></div>
         <form id="general-feedback-form">
           <textarea name="feedback" rows="4" maxlength="1000" placeholder="例如：我看不懂人生币，或者我更想看到……" required></textarea>
-          <button type="submit" class="primary-action">提交本地反馈</button>
+          <button type="submit" class="primary-action">${renderIcon('send')} 提交本地反馈</button>
           <p class="form-message">${escapeHtml(feedbackMessage)}${generalFeedback.length > 0 && !feedbackMessage ? `已保存 ${generalFeedback.length} 条反馈。` : ''}</p>
         </form>
       </section>
@@ -439,7 +477,7 @@ function renderAgentScreen() {
       <header class="agent-page-header">
         <button type="button" data-close-agent aria-label="返回 Today">${renderIcon('back')}</button>
         <div class="agent-page-identity">
-          <span>${renderIcon('robot')}</span>
+          <span>${renderIcon('agent')}</span>
           <div><h1>Life Agent</h1><p>本地 Mock · 只处理生活记录</p></div>
         </div>
         <span class="agent-status" aria-label="当前可用"></span>
@@ -450,11 +488,11 @@ function renderAgentScreen() {
       <section class="agent-conversation" id="agent-conversation" aria-live="polite">
         ${agentMessages.map((message) => `
           <article class="agent-message ${message.role}">
-            ${message.role === 'agent' ? `<span class="message-avatar" aria-hidden="true">${renderIcon('robot')}</span>` : ''}
+            ${message.role === 'agent' ? `<span class="message-avatar" aria-hidden="true">${renderIcon('agent')}</span>` : ''}
             <div class="message-content"><p>${escapeHtml(message.content)}</p>${message.recordIds ? renderAgentRecordCards(message.recordIds) : ''}</div>
           </article>
         `).join('')}
-        ${isAgentThinking ? `<article class="agent-message agent"><span class="message-avatar" aria-hidden="true">${renderIcon('robot')}</span><div class="message-content thinking"><span></span><span></span><span></span></div></article>` : ''}
+        ${isAgentThinking ? `<article class="agent-message agent"><span class="message-avatar" aria-hidden="true">${renderIcon('agent')}</span><div class="message-content thinking"><span></span><span></span><span></span></div></article>` : ''}
         ${renderAgentPendingAction()}
       </section>
 
@@ -986,23 +1024,20 @@ async function submitGeneralFeedback(content: string) {
 }
 
 function renderIcon(name: IconName) {
-  // 机器人承担品牌识别，保留定制图形；其余功能图标统一使用 Lucide，避免线宽与造型混乱。
-  if (name === 'robot') {
-    return '<svg class="icon icon-robot" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3"/><circle cx="12" cy="2.8" r="1.2" fill="#45ad69" stroke="none"/><rect x="4" y="6" width="16" height="13" rx="5" fill="#f7fcf8"/><rect x="6.6" y="8.5" width="10.8" height="7.4" rx="2.8" fill="currentColor" stroke="none"/><circle cx="9.8" cy="12.2" r="1" fill="#bff0c8" stroke="none"/><circle cx="14.2" cy="12.2" r="1" fill="#bff0c8" stroke="none"/><path d="M9.5 17.3c1.6.7 3.4.7 5 0"/></svg>';
-  }
-
-  const iconNodes: Record<Exclude<IconName, 'robot'>, IconNode> = {
+  // 全站只使用同一套 Lucide 线性图标与线宽，Agent 也采用温和的对话符号，不再单独绘制机器人。
+  const iconNodes: Record<IconName, IconNode> = {
     back: ArrowLeft,
     home: House,
     life: Sprout,
     user: UserRound,
     info: Info,
+    agent: MessageCircleHeart,
     send: ArrowUp,
     calendar: CalendarDays,
     edit: PencilLine,
     shield: ShieldCheck,
     database: DatabaseBackup,
-    help: CircleQuestionMark,
+    help: MessageCircleQuestion,
     download: Download,
     trash: Trash2,
     check: CircleCheck,
@@ -1010,6 +1045,10 @@ function renderIcon(name: IconName) {
     clock: Clock3,
     heart: HeartHandshake,
     chevron: ChevronRight,
+    insights: ChartNoAxesColumnIncreasing,
+    records: NotebookTabs,
+    settings: Settings2,
+    wallet: WalletCards,
   };
 
   return createLucideElement(iconNodes[name], {

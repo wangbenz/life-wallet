@@ -2631,3 +2631,733 @@ body {
     margin-left: 43px;
   }
 }
+
+/* Life / Me refinement: 延续 Today 的生活手账气质，统一信息层级与 Lucide 图标容器。 */
+.page-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.page-heading-row > div {
+  min-width: 0;
+}
+
+.page-heading-row h1 {
+  margin-top: 6px;
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 34px;
+  line-height: 1.15;
+}
+
+.page-heading-row > div > p:last-child {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.page-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--green-800);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.page-kicker .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.heading-symbol,
+.section-icon,
+.settings-icon,
+.profile-symbol,
+.action-symbol {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--green-800);
+  background: #eaf6e7;
+}
+
+.heading-symbol {
+  width: 50px;
+  height: 50px;
+  border: 1px solid #d8ead9;
+  border-radius: 17px;
+}
+
+.heading-symbol.peach {
+  color: #bd735a;
+  border-color: #f2d8cc;
+  background: #fff0e8;
+}
+
+.heading-symbol .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.life-heading,
+.me-heading {
+  margin-bottom: 20px;
+}
+
+.life-heading .segmented {
+  margin-top: 20px;
+}
+
+.segmented button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.segmented button .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.life-view-panel {
+  gap: 16px;
+}
+
+.life-overview-card,
+.records-overview,
+.me-profile-card {
+  border: 1px solid #e5e5dc;
+  border-radius: 20px;
+  background: #fffefa;
+}
+
+.life-overview-card {
+  padding: 18px;
+  border-color: #ecdfb9;
+  background: #fff9e8;
+}
+
+.life-overview-card > header,
+.settings-group-heading,
+.profile-identity,
+.section-heading-copy,
+.records-overview > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.life-overview-card h2,
+.settings-group-heading h2,
+.profile-identity h2,
+.records-overview h2 {
+  margin: 4px 0 0;
+  color: var(--green-950);
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.section-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+}
+
+.section-icon.pale {
+  color: #967118;
+  background: #fff3d4;
+}
+
+.section-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.life-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 18px;
+  padding: 15px 0;
+  border-top: 1px solid rgb(173 142 65 / 15%);
+  border-bottom: 1px solid rgb(173 142 65 / 15%);
+}
+
+.life-metric-grid > div {
+  min-width: 0;
+  padding: 0 11px;
+  border-right: 1px solid rgb(173 142 65 / 15%);
+}
+
+.life-metric-grid > div:first-child {
+  padding-left: 0;
+}
+
+.life-metric-grid > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.life-metric-grid span,
+.profile-metrics span {
+  display: block;
+  color: #7a827c;
+  font-size: 11px;
+}
+
+.life-metric-grid strong,
+.profile-metrics strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--green-950);
+  font-size: 21px;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.life-metric-grid strong em,
+.profile-metrics strong em {
+  margin-left: 2px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 650;
+}
+
+.life-metric-grid small {
+  display: block;
+  margin-top: 6px;
+  overflow: hidden;
+  color: #8e8978;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-progress {
+  margin-top: 15px;
+}
+
+.review-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #766b4e;
+  font-size: 11px;
+}
+
+.review-progress strong {
+  color: var(--green-800);
+}
+
+.review-progress .progress-track {
+  height: 7px;
+  margin-top: 9px;
+  background: rgb(162 142 86 / 14%);
+}
+
+.life-agent-note {
+  align-items: flex-start;
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.life-agent-note h2 {
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 20px;
+}
+
+.distribution-card {
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.distribution-card .card-heading {
+  align-items: center;
+}
+
+.distribution-card .card-heading > span {
+  color: var(--green-800);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.data-scope-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 17px 0 0;
+  padding-top: 13px;
+  border-top: 1px solid #eceee7;
+  color: #7b837d;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.data-scope-note .icon {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+}
+
+.life-records-action > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.life-records-action > span .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.records-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: #edf7ea;
+}
+
+.records-overview > div:last-child {
+  display: grid;
+  gap: 4px;
+  color: #738078;
+  font-size: 11px;
+  text-align: right;
+}
+
+.records-overview > div:last-child strong {
+  color: var(--green-800);
+  font-size: 13px;
+}
+
+.history-card {
+  padding: 17px;
+  border-radius: 18px;
+}
+
+.history-card header span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.history-card header span .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.history-card footer {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.history-card footer button {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid #e1e7de;
+  border-radius: 10px;
+  background: #fffefa;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.history-card footer button .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.history-card footer button:first-child {
+  color: var(--green-800);
+  border-color: #cfe5d1;
+  background: #edf7ea;
+}
+
+/* Me */
+.me-screen {
+  gap: 16px;
+}
+
+.me-profile-card {
+  position: relative;
+  padding: 18px;
+  border-color: #d8e8d9;
+  background: #edf7ea;
+}
+
+.profile-symbol {
+  width: 46px;
+  height: 46px;
+  border: 1px solid #cde4d0;
+  border-radius: 16px;
+  background: #fffefa;
+}
+
+.profile-symbol .icon {
+  width: 23px;
+  height: 23px;
+}
+
+.profile-identity > div {
+  min-width: 0;
+}
+
+.profile-identity h2 {
+  overflow: hidden;
+  font-size: 21px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-identity > div > span {
+  display: block;
+  margin-top: 4px;
+  color: #718078;
+  font-size: 11px;
+}
+
+.local-status {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--green-800);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.local-status .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 17px;
+  padding-top: 15px;
+  border-top: 1px solid #d4e7d5;
+}
+
+.profile-metrics > div {
+  min-width: 0;
+}
+
+.profile-metrics strong {
+  font-size: 17px;
+}
+
+.settings-group {
+  padding: 17px;
+  border-radius: 18px;
+  background: #fffefa;
+}
+
+.settings-group-heading {
+  align-items: flex-start;
+}
+
+.settings-group-heading > div {
+  min-width: 0;
+}
+
+.settings-group-heading h2 {
+  font-size: 17px;
+}
+
+.settings-group-heading small {
+  display: block;
+  margin-top: 4px;
+  color: #8a938d;
+  font-size: 11px;
+}
+
+.settings-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+}
+
+.settings-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-icon.warm {
+  color: #a5791d;
+  background: #fff1ce;
+}
+
+.settings-icon.blue {
+  color: #587b83;
+  background: #e9f3f3;
+}
+
+.settings-icon.peach {
+  color: #b96d54;
+  background: #ffede4;
+}
+
+.account-settings,
+.privacy-card,
+.feedback-card {
+  background: #fffefa;
+}
+
+.account-form {
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #eceee7;
+}
+
+.account-form > label {
+  border: 0;
+  border-bottom: 1px solid #e7eae4;
+  border-radius: 0;
+  background: transparent;
+}
+
+.account-form > label:focus-within {
+  border-color: var(--green-200);
+  background: #f7fbf5;
+  box-shadow: none;
+}
+
+.account-form .primary-action {
+  margin-top: 7px;
+}
+
+.privacy-card summary {
+  justify-content: flex-start;
+}
+
+.privacy-card summary .summary-copy {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+}
+
+.privacy-card summary .summary-copy small {
+  color: var(--green-800);
+}
+
+.privacy-card summary .summary-copy strong {
+  font-size: 14px;
+}
+
+.privacy-card summary .summary-copy em {
+  color: #929a94;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.privacy-card summary > .icon-chevron {
+  width: 17px;
+  height: 17px;
+  color: #8d978f;
+  transition: transform 180ms ease;
+}
+
+.privacy-card[open] summary > .icon-chevron {
+  transform: rotate(90deg);
+}
+
+.settings-action-list {
+  display: grid;
+  gap: 0;
+  margin-top: 14px;
+  padding-top: 5px;
+}
+
+.settings-action {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 18px;
+  width: 100%;
+  min-height: 62px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid #e9ece6;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.data-actions .settings-action {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-action:last-child {
+  border-bottom: 0;
+}
+
+.settings-action > span:nth-child(2) {
+  display: grid;
+  gap: 3px;
+}
+
+.settings-action strong {
+  color: #314239;
+  font-size: 13px;
+}
+
+.settings-action small {
+  color: #8b948e;
+  font-size: 10px;
+}
+
+.settings-action > .icon-chevron {
+  width: 16px;
+  height: 16px;
+  color: #9ba39e;
+}
+
+.action-symbol {
+  width: 32px;
+  height: 32px;
+  border-radius: 11px;
+}
+
+.action-symbol.danger {
+  color: #b85b51;
+  background: #fff0eb;
+}
+
+.action-symbol .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.data-actions button.danger-text {
+  color: inherit;
+}
+
+.danger-confirm {
+  padding: 13px 0 4px;
+}
+
+.danger-confirm p {
+  margin: 0 0 10px;
+  color: #875b55;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.danger-confirm > div {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 8px;
+}
+
+.danger-confirm button {
+  min-height: 40px;
+  border: 1px solid #e0e5df;
+  border-radius: 11px;
+  background: #fffefa;
+  font-weight: 650;
+}
+
+.feedback-card form {
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #eceee7;
+}
+
+.feedback-card textarea {
+  min-height: 98px;
+  resize: none;
+  background: #f7faf5;
+}
+
+.feedback-card .primary-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.feedback-card .primary-action .icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* Agent identity now uses the same line icon family as every functional surface. */
+.agent-entry .icon-agent,
+.agent-page-identity .icon-agent,
+.agent-avatar .icon-agent,
+.message-avatar .icon-agent {
+  fill: none;
+  stroke: currentColor;
+}
+
+.agent-entry {
+  border-radius: 17px;
+}
+
+.agent-entry .icon-agent {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 520px) {
+  .life-screen,
+  .me-screen {
+    padding-top: 20px;
+  }
+
+  .page-heading-row h1 {
+    font-size: 32px;
+  }
+
+  .heading-symbol {
+    width: 46px;
+    height: 46px;
+  }
+
+  .life-metric-grid > div {
+    padding: 0 8px;
+  }
+
+  .life-metric-grid strong {
+    font-size: 18px;
+  }
+
+  .review-progress > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .local-status {
+    position: static;
+    width: fit-content;
+    margin: 13px 0 0 57px;
+  }
+
+  .profile-metrics {
+    margin-top: 14px;
+  }
+
+  .settings-group {
+    padding: 16px;
+  }
+}

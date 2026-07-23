@@ -1,8 +1,8 @@
 # Life Wallet / 人生账单
 
 Status: Active
-Stage: H5 Demo Coding / Agent Learning
-Last Updated: 2026-07-15
+Stage: H5 Demo Validation
+Last Updated: 2026-07-23
 Owner: Human + ChatGPT + Codex
 
 ## Project Overview
@@ -11,7 +11,7 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 Agent First 的 AI 人�
 
 ## Current Stage
 
-当前阶段：H5 Demo Coding / Agent Learning。
+当前阶段：H5 Demo Validation。
 
 当前已经完成两条可独立运行的 Demo 能力：
 
@@ -22,7 +22,7 @@ Life Wallet（人生账单 / 人生存钱罐）是一个 Agent First 的 AI 人�
 
 当前视觉以产品原型为基准，统一为“清爽小程序 + 温和生活手账”：使用柔和绿色氛围、精致白色内容卡和明确的绿色主操作；Today 突出人生余额与自然语言输入，Life 突出基于真实记录的阶段洞察，Me 使用一致的设置卡片。页面仍为真实 H5，不包含假手机框和假系统状态栏。
 
-全站图标统一使用按需导入的 Lucide 线性图标，Life Agent 使用温和的对话气泡符号，不再保留独立自绘机器人；按钮、标签、输入框、进度条和浮动底部导航包含轻量微交互，并遵守系统的“减少动态效果”设置。
+全站图标统一使用按需导入的 Lucide 线性图标，Life Agent 使用温和的对话气泡符号，不再保留独立自绘机器人；Today 记录日期与 Me 出生日期统一使用支持月份和年份跳转的 H5 日历，不再调用系统原生日期面板。按钮、标签、输入框、进度条和浮动底部导航包含轻量微交互，并遵守系统的“减少动态效果”设置。
 
 当前 H5 原型已完成首轮京东云静态部署，Nginx 使用 `15173` 端口提供服务，公网访问已验证。下一步邀请 5-10 个目标用户完成 7 个记录日验证。Agent 学习主线仍是实现带循环、Tool 和对话状态的最小自定义 Agent，再逐步评估真实模型和 LangChain4j。
 

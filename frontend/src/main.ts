@@ -28,6 +28,7 @@ import {
 } from 'lucide';
 import { LIFE_MINUTES_PER_COIN, summarizeDimensions } from './mock/analysis.ts';
 import { resolveMockAgentIntent } from './mock/agent.ts';
+import { getCalendarMonth, getYearPageStart, parseIsoDate, toIsoDate } from './calendar.ts';
 import {
   clearMockUserData,
   deleteMockRecord,
@@ -51,6 +52,8 @@ import {
 
 type Tab = 'today' | 'life' | 'me';
 type LifeView = 'insights' | 'records';
+type CalendarTarget = 'record' | 'birthday';
+type CalendarView = 'days' | 'months' | 'years';
 type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'agent' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron' | 'insights' | 'records' | 'settings' | 'wallet';
 type AgentMessage = { id: number; role: 'agent' | 'user'; content: string; recordIds?: number[] };
 type AgentPendingAction =
@@ -83,6 +86,12 @@ let recordMessage = '';
 let feedbackMessage = '';
 let recordDraft = '';
 let recordLifeDate = todayValue();
+let accountBirthdayDraft: string | null = null;
+let accountExpectedLifeYearsDraft: number | null = null;
+let calendarTarget: CalendarTarget | null = null;
+let calendarView: CalendarView = 'days';
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth();
 let agentDraft = '';
 let isAgentThinking = false;
 let agentPendingAction: AgentPendingAction | null = null;
@@ -103,6 +112,7 @@ function render() {
         ${renderTabButton('me', 'user', '我的')}
       </nav>`}
     </main>
+    ${calendarTarget ? renderCalendarDialog() : ''}
   `;
   bindEvents();
 }
@@ -282,7 +292,7 @@ function renderFeedbackButton(recordId: number, rating: FeedbackRating, label: s
 function renderComposer() {
   return `
     <form class="composer" id="record-form">
-      <label class="record-date">记录日期<input name="lifeDate" type="date" max="${todayValue()}" value="${recordLifeDate}" aria-label="记录日期" /></label>
+      <label class="record-date"><span>记录日期</span><input name="lifeDate" type="hidden" value="${recordLifeDate}" /><button class="date-trigger compact" type="button" data-open-calendar="record" aria-label="选择记录日期，当前为 ${formatCalendarTriggerDate(recordLifeDate)}">${renderIcon('calendar')}<span>${formatCalendarTriggerDate(recordLifeDate)}</span>${renderIcon('chevron')}</button></label>
       <textarea name="content" maxlength="2000" rows="4" placeholder="例如：下午专注改了 3 小时 bug，晚上跑步 40 分钟…" required>${escapeHtml(recordDraft)}</textarea>
       <button type="submit" aria-label="交给 AI 整理" ${isAnalyzingRecord ? 'disabled' : ''}>${renderIcon('sparkles')}<span>${isAnalyzingRecord ? '正在整理…' : '交给 AI 整理'}</span></button>
       <p>${escapeHtml(recordMessage)}</p>
@@ -408,8 +418,8 @@ function renderEmptyState(title: string, description: string, action: string, ta
 
 function renderMe() {
   if (activeTab !== 'me') return '';
-  const birthday = account?.birthday ?? '1995-01-01';
-  const expectedLifeYears = account?.expectedLifeYears ?? 80;
+  const birthday = accountBirthdayDraft ?? account?.birthday ?? '1995-01-01';
+  const expectedLifeYears = accountExpectedLifeYearsDraft ?? account?.expectedLifeYears ?? 80;
   const recordDays = new Set(recentRecords.map((record) => record.lifeDate)).size;
   const recordedMinutes = recentRecords.flatMap((record) => record.activities).reduce((sum, activity) => sum + activity.durationMinutes, 0);
 
@@ -435,7 +445,7 @@ function renderMe() {
       <section class="settings-section account-settings settings-group">
         <div class="settings-group-heading"><span class="settings-icon mint">${renderIcon('wallet')}</span><div><p class="eyebrow">账户设置</p><h2>${account ? '调整余额依据' : '创建人生账户'}</h2><small>修改后会重新估算人生余额</small></div></div>
         <form class="account-form" id="account-form">
-          <label><span>${renderIcon('calendar')} 出生日期</span><input name="birthday" type="date" max="${todayValue()}" value="${birthday}" required /></label>
+          <label><span>${renderIcon('calendar')} 出生日期</span><input name="birthday" type="hidden" value="${birthday}" /><button class="date-trigger" type="button" data-open-calendar="birthday" aria-label="选择出生日期，当前为 ${formatCalendarTriggerDate(birthday)}"><span>${formatCalendarTriggerDate(birthday)}</span>${renderIcon('chevron')}</button></label>
           <label><span>${renderIcon('life')} 预期寿命</span><span class="number-field"><input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" required /><em>岁</em></span></label>
           <button class="primary-action account-save" type="submit" ${account && !isAccountDirty ? 'disabled' : ''}>${account ? '保存修改' : '生成我的人生余额'}</button>
           <p class="form-message">${escapeHtml(formMessage)}</p>
@@ -469,6 +479,69 @@ function renderMe() {
       <p class="me-version">Life Wallet · H5 Demo v0.3</p>
     </section>
   `;
+}
+
+function renderCalendarDialog() {
+  if (!calendarTarget) return '';
+  const selectedValue = calendarTarget === 'record'
+    ? recordLifeDate
+    : (accountBirthdayDraft ?? account?.birthday ?? '1995-01-01');
+  const title = calendarTarget === 'record' ? '选择记录日期' : '选择出生日期';
+  const periodTitle = calendarView === 'days'
+    ? `${calendarYear}年 ${calendarMonth + 1}月`
+    : calendarView === 'months'
+      ? `${calendarYear}年`
+      : `${getYearPageStart(calendarYear)}—${getYearPageStart(calendarYear) + 11}年`;
+
+  return `
+    <div class="calendar-overlay" data-calendar-close="backdrop">
+      <section class="calendar-dialog" role="dialog" aria-modal="true" aria-labelledby="calendar-title" data-calendar-panel>
+        <header class="calendar-dialog-heading">
+          <div><p>${renderIcon('calendar')} Life Wallet 日历</p><h2 id="calendar-title">${title}</h2></div>
+          <button type="button" data-calendar-close="button" aria-label="关闭日期选择">完成</button>
+        </header>
+        <div class="calendar-toolbar">
+          <button type="button" data-calendar-shift="previous" aria-label="上一${calendarView === 'days' ? '个月' : calendarView === 'months' ? '年' : '组年份'}" ${calendarCanShift(-1) ? '' : 'disabled'}>${renderIcon('back')}</button>
+          <button type="button" class="calendar-period" data-calendar-drill aria-label="切换日期选择层级">${periodTitle}${calendarView === 'years' ? '' : renderIcon('chevron')}</button>
+          <button type="button" data-calendar-shift="next" aria-label="下一${calendarView === 'days' ? '个月' : calendarView === 'months' ? '年' : '组年份'}" ${calendarCanShift(1) ? '' : 'disabled'}>${renderIcon('chevron')}</button>
+        </div>
+        ${calendarView === 'days' ? renderCalendarDays(selectedValue) : calendarView === 'months' ? renderCalendarMonths() : renderCalendarYears()}
+        <footer class="calendar-footer">
+          <span>${calendarTarget === 'record' ? '可补记今天及过去的生活' : '选择后再保存账户修改'}</span>
+          ${calendarTarget === 'record' ? '<button type="button" data-calendar-today>回到今天</button>' : ''}
+        </footer>
+      </section>
+    </div>
+  `;
+}
+
+function renderCalendarDays(selectedValue: string) {
+  const weekdayLabels = ['一', '二', '三', '四', '五', '六', '日'];
+  const month = getCalendarMonth(calendarYear, calendarMonth, todayValue());
+  const today = todayValue();
+  const cells = [
+    ...Array.from({ length: month.firstWeekday }, () => '<span class="calendar-blank" aria-hidden="true"></span>'),
+    ...month.days.map(({ day, value, disabled }) => {
+      return `<button type="button" data-calendar-day="${value}" class="${value === selectedValue ? 'selected' : ''} ${value === today ? 'today' : ''}" ${disabled ? 'disabled' : ''} aria-label="${calendarYear}年${calendarMonth + 1}月${day}日" aria-pressed="${value === selectedValue}">${day}</button>`;
+    }),
+  ].join('');
+
+  return `<div class="calendar-weekdays">${weekdayLabels.map((label) => `<span>${label}</span>`).join('')}</div><div class="calendar-days">${cells}</div>`;
+}
+
+function renderCalendarMonths() {
+  const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+  const today = new Date();
+  return `<div class="calendar-choice-grid months">${months.map((label, month) => {
+    const disabled = calendarYear > today.getFullYear() || (calendarYear === today.getFullYear() && month > today.getMonth());
+    return `<button type="button" data-calendar-month="${month}" class="${month === calendarMonth ? 'selected' : ''}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+  }).join('')}</div>`;
+}
+
+function renderCalendarYears() {
+  const start = getYearPageStart(calendarYear);
+  const currentYear = new Date().getFullYear();
+  return `<div class="calendar-choice-grid years">${Array.from({ length: 12 }, (_, index) => start + index).map((year) => `<button type="button" data-calendar-year="${year}" class="${year === calendarYear ? 'selected' : ''}" ${year > currentYear || year < 1900 ? 'disabled' : ''}>${year}</button>`).join('')}</div>`;
 }
 
 function renderAgentScreen() {
@@ -624,11 +697,50 @@ function bindEvents() {
     recordDraft = (event.currentTarget as HTMLTextAreaElement).value;
   });
 
-  document.querySelector<HTMLInputElement>('#record-form input[name="lifeDate"]')?.addEventListener('change', (event) => {
-    recordDraft = document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.value ?? recordDraft;
-    recordLifeDate = (event.currentTarget as HTMLInputElement).value;
-    render();
+  document.querySelectorAll<HTMLButtonElement>('[data-open-calendar]').forEach((button) => {
+    button.addEventListener('click', () => openCalendar(button.dataset.openCalendar as CalendarTarget));
   });
+
+  document.querySelectorAll<HTMLElement>('[data-calendar-close]').forEach((element) => {
+    element.addEventListener('click', (event) => {
+      if (element.dataset.calendarClose === 'backdrop' && event.target !== element) return;
+      closeCalendar();
+    });
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-calendar-drill]')?.addEventListener('click', () => {
+    calendarView = calendarView === 'days' ? 'months' : 'years';
+    renderCalendarAndFocus();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-calendar-shift]').forEach((button) => {
+    button.addEventListener('click', () => {
+      shiftCalendar(button.dataset.calendarShift === 'previous' ? -1 : 1);
+      renderCalendarAndFocus();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-calendar-year]').forEach((button) => {
+    button.addEventListener('click', () => {
+      calendarYear = Number(button.dataset.calendarYear);
+      calendarView = 'months';
+      renderCalendarAndFocus();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-calendar-month]').forEach((button) => {
+    button.addEventListener('click', () => {
+      calendarMonth = Number(button.dataset.calendarMonth);
+      calendarView = 'days';
+      renderCalendarAndFocus();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-calendar-day]').forEach((button) => {
+    button.addEventListener('click', () => selectCalendarDate(button.dataset.calendarDay ?? todayValue()));
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-calendar-today]')?.addEventListener('click', () => selectCalendarDate(todayValue()));
 
   document.querySelector<HTMLFormElement>('#record-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -668,8 +780,9 @@ function bindEvents() {
     });
   });
 
-  document.querySelectorAll<HTMLInputElement>('#account-form input').forEach((input) => {
+  document.querySelectorAll<HTMLInputElement>('#account-form input[type="number"]').forEach((input) => {
     input.addEventListener('input', () => {
+      accountExpectedLifeYearsDraft = input.value === '' ? null : Number(input.value);
       isAccountDirty = true;
       const saveButton = document.querySelector<HTMLButtonElement>('.account-save');
       if (saveButton) saveButton.disabled = false;
@@ -704,6 +817,70 @@ function bindEvents() {
   document.querySelectorAll<HTMLButtonElement>('[data-agent-action]').forEach((button) => {
     button.addEventListener('click', () => button.dataset.agentAction === 'confirm' ? void confirmAgentAction() : cancelAgentAction());
   });
+}
+
+function syncVisibleDrafts() {
+  recordDraft = document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.value ?? recordDraft;
+  const expectedLifeInput = document.querySelector<HTMLInputElement>('#account-form input[name="expectedLifeYears"]');
+  if (expectedLifeInput?.value) accountExpectedLifeYearsDraft = Number(expectedLifeInput.value);
+}
+
+function openCalendar(target: CalendarTarget) {
+  syncVisibleDrafts();
+  calendarTarget = target;
+  calendarView = 'days';
+  const selected = parseIsoDate(target === 'record' ? recordLifeDate : (accountBirthdayDraft ?? account?.birthday ?? '1995-01-01'));
+  calendarYear = selected.year;
+  calendarMonth = selected.month;
+  document.body.classList.add('calendar-open');
+  renderCalendarAndFocus();
+}
+
+function closeCalendar() {
+  calendarTarget = null;
+  document.body.classList.remove('calendar-open');
+  render();
+  window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`[data-open-calendar="${activeTab === 'me' ? 'birthday' : 'record'}"]`)?.focus());
+}
+
+function selectCalendarDate(value: string) {
+  if (calendarTarget === 'record') {
+    recordLifeDate = value;
+  } else if (calendarTarget === 'birthday') {
+    accountBirthdayDraft = value;
+    isAccountDirty = true;
+  }
+  closeCalendar();
+}
+
+function shiftCalendar(direction: -1 | 1) {
+  if (!calendarCanShift(direction)) return;
+  if (calendarView === 'days') {
+    const shifted = new Date(calendarYear, calendarMonth + direction, 1);
+    calendarYear = shifted.getFullYear();
+    calendarMonth = shifted.getMonth();
+  } else if (calendarView === 'months') {
+    calendarYear += direction;
+  } else {
+    calendarYear += direction * 12;
+  }
+}
+
+function calendarCanShift(direction: -1 | 1) {
+  const today = new Date();
+  if (direction < 0) {
+    if (calendarView === 'days') return calendarYear > 1900 || calendarMonth > 0;
+    if (calendarView === 'months') return calendarYear > 1900;
+    return getYearPageStart(calendarYear) > getYearPageStart(1900);
+  }
+  if (calendarView === 'days') return calendarYear < today.getFullYear() || calendarMonth < today.getMonth();
+  if (calendarView === 'months') return calendarYear < today.getFullYear();
+  return getYearPageStart(calendarYear) < getYearPageStart(today.getFullYear());
+}
+
+function renderCalendarAndFocus() {
+  render();
+  window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.calendar-dialog button:not(:disabled)')?.focus());
 }
 
 function openAgent(recordId: number | null = null) {
@@ -858,6 +1035,8 @@ async function initialize() {
     [account, recentRecords, recordFeedback, generalFeedback] = await Promise.all([
       getMockAccount(), getMockRecentRecords(), getMockRecordFeedback(), getMockGeneralFeedback(),
     ]);
+    accountBirthdayDraft = account?.birthday ?? null;
+    accountExpectedLifeYearsDraft = account?.expectedLifeYears ?? null;
   } finally {
     isLoading = false;
     render();
@@ -966,6 +1145,8 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
   render();
   try {
     account = await saveMockAccount(payload);
+    accountBirthdayDraft = account.birthday;
+    accountExpectedLifeYearsDraft = account.expectedLifeYears;
     isAccountDirty = false;
     formMessage = '人生账户已保存，可以返回 Today 开始记录。';
   } catch (error) {
@@ -1007,6 +1188,8 @@ async function handleClearData(action: string) {
   recordDraft = '';
   isClearDataConfirming = false;
   isAccountDirty = false;
+  accountBirthdayDraft = null;
+  accountExpectedLifeYearsDraft = null;
   formMessage = '本机中的 Life Wallet 数据已清除。';
   render();
 }
@@ -1082,6 +1265,11 @@ function formatHeaderDate(date: Date) {
   return `${date.getMonth() + 1}月${date.getDate()}日 ${weekdays[date.getDay()]}`;
 }
 
+function formatCalendarTriggerDate(value: string) {
+  const { year, month, day } = parseIsoDate(value);
+  return `${year}年${month + 1}月${day}日`;
+}
+
 function formatClockTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -1101,6 +1289,10 @@ function escapeHtml(value: string) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && calendarTarget) closeCalendar();
+});
 
 render();
 void initialize();

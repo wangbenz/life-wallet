@@ -993,7 +993,7 @@ button:not(:disabled):active {
   font-size: 11px;
 }
 
-.record-date input {
+.record-date .date-trigger {
   border: 0;
   color: var(--green-800);
   background: transparent;
@@ -1930,7 +1930,7 @@ body {
   font-size: 12px;
 }
 
-.record-date input {
+.record-date .date-trigger {
   min-height: 30px;
   padding: 0 8px;
   border: 1px solid #e2e7dc;
@@ -2195,6 +2195,310 @@ body {
 .account-form > label,
 .feedback-card textarea {
   background: rgb(255 255 255 / 72%);
+}
+
+/* 日期选择统一使用 H5 自定义日历，避免不同系统的原生面板破坏视觉和操作一致性。 */
+.date-trigger {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 44px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  color: var(--green-800);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.date-trigger .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.date-trigger .icon-chevron {
+  color: #98a39b;
+}
+
+.record-date .date-trigger.compact {
+  min-height: 36px;
+}
+
+.account-form > label:has(.date-trigger):focus-within {
+  border-color: #aadab5;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgb(69 173 105 / 8%);
+}
+
+body.calendar-open {
+  overflow: hidden;
+}
+
+.calendar-overlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 18px 12px 0;
+  background: rgb(18 35 25 / 34%);
+  backdrop-filter: blur(5px);
+  animation: calendar-fade 180ms ease-out;
+}
+
+.calendar-dialog {
+  width: min(100%, 430px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px 18px calc(18px + env(safe-area-inset-bottom));
+  border: 1px solid rgb(255 255 255 / 88%);
+  border-radius: 28px 28px 0 0;
+  background:
+    radial-gradient(circle at 100% 0, rgb(226 244 230 / 90%), transparent 34%),
+    #fffdf8;
+  box-shadow: 0 -22px 60px rgb(24 65 39 / 22%);
+  animation: calendar-rise 220ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.calendar-dialog-heading,
+.calendar-toolbar,
+.calendar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-dialog-heading {
+  gap: 16px;
+  padding: 0 2px 16px;
+}
+
+.calendar-dialog-heading p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 5px;
+  color: var(--green-700);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: .04em;
+}
+
+.calendar-dialog-heading p .icon {
+  width: 15px;
+  height: 15px;
+}
+
+.calendar-dialog-heading h2 {
+  margin: 0;
+  color: var(--green-950);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.calendar-dialog-heading > button,
+.calendar-footer button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #d9e7da;
+  border-radius: 999px;
+  color: var(--green-800);
+  background: rgb(255 255 255 / 82%);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calendar-toolbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #e3eadf;
+  border-radius: 18px;
+  background: rgb(244 249 242 / 78%);
+}
+
+.calendar-toolbar button {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.calendar-toolbar button:not(:disabled):hover {
+  background: #e5f3e5;
+}
+
+.calendar-toolbar .calendar-period {
+  color: var(--green-950);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.calendar-toolbar .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.calendar-toolbar .calendar-period .icon {
+  width: 15px;
+  height: 15px;
+  transform: rotate(90deg);
+}
+
+.calendar-weekdays,
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-weekdays {
+  padding: 17px 3px 7px;
+}
+
+.calendar-weekdays span {
+  color: #929c95;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.calendar-days {
+  gap: 4px 2px;
+}
+
+.calendar-days button,
+.calendar-days .calendar-blank {
+  min-width: 0;
+  min-height: 44px;
+}
+
+.calendar-days button {
+  position: relative;
+  border: 0;
+  border-radius: 14px;
+  color: #344239;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.calendar-days button:not(:disabled):hover {
+  background: var(--green-100);
+}
+
+.calendar-days button.today:not(.selected) {
+  color: var(--green-800);
+  background: #edf7ea;
+  font-weight: 800;
+}
+
+.calendar-days button.today:not(.selected)::after {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--green-600);
+  content: '';
+  transform: translateX(-50%);
+}
+
+.calendar-days button.selected,
+.calendar-choice-grid button.selected {
+  color: #fff;
+  background: var(--green-700);
+  box-shadow: 0 8px 18px rgb(37 148 82 / 22%);
+  font-weight: 800;
+}
+
+.calendar-days button:disabled,
+.calendar-choice-grid button:disabled {
+  color: #c7ccc8;
+  opacity: 1;
+}
+
+.calendar-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  padding: 18px 0 6px;
+}
+
+.calendar-choice-grid button {
+  min-height: 52px;
+  border: 1px solid #e2e8df;
+  border-radius: 15px;
+  color: #465249;
+  background: rgb(255 255 255 / 78%);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calendar-choice-grid button:not(:disabled):not(.selected):hover {
+  border-color: #bbdcbc;
+  background: #eef8ed;
+}
+
+.calendar-footer {
+  gap: 14px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 16px;
+  background: #fff3df;
+}
+
+.calendar-footer span {
+  color: #7d6b52;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.calendar-footer button {
+  flex: 0 0 auto;
+  border-color: #f0d8b4;
+  color: #8a6536;
+}
+
+@media (min-width: 640px) {
+  .calendar-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .calendar-dialog {
+    border-radius: 28px;
+  }
+}
+
+@keyframes calendar-fade {
+  from { opacity: 0; }
+}
+
+@keyframes calendar-rise {
+  from { opacity: 0; transform: translateY(24px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-overlay,
+  .calendar-dialog {
+    animation: none;
+  }
 }
 
 /* Life Agent */

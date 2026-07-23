@@ -2,7 +2,7 @@
 
 Status: Active
 Stage: H5 Demo Validation
-Last Updated: 2026-07-15
+Last Updated: 2026-07-23
 Owner: Human + Codex
 
 ## 当前目标
@@ -25,7 +25,7 @@ Owner: Human + Codex
 - Life：只基于已确认记录生成洞察和历史回看，不展示假趋势、成就或连续打卡。
 - Me：账户设置、本地数据导出 / 清除、隐私说明和体验反馈。
 - Mock、账户、记录和反馈统一保存在前端与浏览器 `localStorage`，当前不请求后端。
-- 视觉以“清爽小程序 + 温和生活手账”为准，使用 Lucide 功能图标和轻量微交互。
+- 视觉以“清爽小程序 + 温和生活手账”为准，使用 Lucide 功能图标、统一 H5 日期选择和轻量微交互。
 
 ### 后端保留能力
 

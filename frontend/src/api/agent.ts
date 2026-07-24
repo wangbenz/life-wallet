@@ -1,5 +1,6 @@
 import type { TodayRecord } from '../mock/model.ts';
 import { getOwnerKey } from './client.ts';
+import { createClientId } from './id.ts';
 
 export type AgentApiPendingAction = {
   type: 'CREATE_RECORD' | 'UPDATE_DURATION' | 'DELETE_RECORD';
@@ -41,7 +42,7 @@ export async function sendAgentMessage(input: SendAgentMessageInput): Promise<Ag
       },
       body: JSON.stringify({
         conversationId: input.conversationId,
-        clientTurnId: crypto.randomUUID(),
+        clientTurnId: createClientId(),
         message: input.message,
         lifeDate: input.lifeDate,
         contextRecordId: input.contextRecordId,

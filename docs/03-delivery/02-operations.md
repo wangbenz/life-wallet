@@ -184,4 +184,4 @@ ssh jd "ln -sfn /var/www/life-wallet/releases/<PREVIOUS_RELEASE> /var/www/life-w
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
-至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口，不满足可靠的麦克风安全上下文要求；真实 Agent 已可用，但完成 HTTPS 前仍不能把它描述为语音完整可用环境。
+至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口；账户与 Agent 标识已通过 `getRandomValues` 兼容该环境，但它仍不满足可靠的麦克风安全上下文要求。真实 Agent 已可用，完成 HTTPS 前仍不能把它描述为语音完整可用环境。

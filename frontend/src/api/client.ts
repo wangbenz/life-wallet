@@ -1,3 +1,5 @@
+import { createClientId } from './id.ts';
+
 const OWNER_KEY_STORAGE = 'life-wallet.owner-key';
 let memoryOwnerKey: string | null = null;
 
@@ -5,7 +7,7 @@ export function getOwnerKey(): string {
   if (memoryOwnerKey) return memoryOwnerKey;
   const stored = typeof localStorage === 'undefined' ? null : localStorage.getItem(OWNER_KEY_STORAGE);
   if (stored) return (memoryOwnerKey = stored);
-  memoryOwnerKey = crypto.randomUUID();
+  memoryOwnerKey = createClientId();
   if (typeof localStorage !== 'undefined') localStorage.setItem(OWNER_KEY_STORAGE, memoryOwnerKey);
   return memoryOwnerKey;
 }

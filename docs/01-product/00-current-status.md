@@ -25,6 +25,7 @@ Owner: Human + Codex
 - Life：只基于已确认记录生成洞察和历史回看；低样本不强调精确画像，历史卡片突出 Agent 修改并收拢手动修正与删除。
 - Me：账户设置、本地数据导出 / 清除、隐私说明，以及可保存并复制给体验邀请人的反馈。
 - 账户、已确认记录、两类反馈和 Agent 对话均按安装级 `ownerKey` 保存在数据库；不迁移历史 `localStorage` 数据。
+- 安装级 `ownerKey` 和 Agent 轮次 ID 优先使用 `randomUUID`，HTTP 测试环境自动使用 `getRandomValues` 生成安全 UUID，不依赖安全上下文。
 - Today 与 Life Agent 支持浏览器语音转文字；不支持时自动保留键盘输入，识别过程可能由浏览器或系统的在线服务完成。
 - 视觉以“清爽小程序 + 温和生活手账”为准，使用 Lucide 功能图标、统一 H5 日期选择、44px 主要触控目标和轻量微交互。
 
@@ -39,7 +40,7 @@ Owner: Human + Codex
 
 ### 测试与部署
 
-- 后端 29 项迁移 / JDBC / 密钥 / Agent 测试、前端 14 项 API / 日历 / 规则测试、TypeScript 和 Vite 生产构建通过。
+- 后端 29 项迁移 / JDBC / 密钥 / Agent 测试、前端 17 项 API / UUID / 日历 / 规则测试、TypeScript 和 Vite 生产构建通过。
 - 本版 H5、Spring Boot 后端和 MySQL 已部署到京东云测试环境，TCP `15173` 的页面与 `/api` 公网访问已验证；DeepSeek 密钥已加密入库，真实 Agent 对话验证通过，HTTPS 尚未配置。
 - 发布、验证和回滚见 `docs/03-delivery/02-operations.md`。
 

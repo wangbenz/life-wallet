@@ -40,7 +40,7 @@ Owner: Human + Codex
 ### 测试与部署
 
 - 后端 29 项迁移 / JDBC / 密钥 / Agent 测试、前端 14 项 API / 日历 / 规则测试、TypeScript 和 Vite 生产构建通过。
-- 本版 H5、Spring Boot 后端和 MySQL 已部署到京东云测试环境，TCP `15173` 的页面与 `/api` 公网访问已验证；DeepSeek 密钥和 HTTPS 尚未配置。
+- 本版 H5、Spring Boot 后端和 MySQL 已部署到京东云测试环境，TCP `15173` 的页面与 `/api` 公网访问已验证；DeepSeek 密钥已加密入库，真实 Agent 对话验证通过，HTTPS 尚未配置。
 - 发布、验证和回滚见 `docs/03-delivery/02-operations.md`。
 
 ## 当前边界
@@ -65,7 +65,7 @@ Owner: Human + Codex
 1. 邀请 5-10 个目标用户完成 7 个记录日验证。
 2. 记录完成率、单次记录成本、解析准确度反馈和第 7 个记录日回访意愿。
 3. 根据真实反馈调整 Today / Life / Me，不用假数据填充页面。
-4. 为测试环境配置轮换后的 DeepSeek 密钥与 HTTPS，再验证真实语音和 Agent 稳定性。
+4. 为测试环境配置 HTTPS，再验证真实语音和持续 Agent 稳定性。
 5. 需要跨用户汇总反馈时，再增加鉴权和服务端持久化，不提前上传完整本地数据。
 
 ## 活跃事实源

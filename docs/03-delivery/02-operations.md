@@ -107,7 +107,7 @@ VITE_AGENT_PROXY_TARGET=http://127.0.0.1:18081 pnpm dev
 - Nginx 配置：`deploy/nginx/life-wallet.conf`。
 - 当前已部署本版 `frontend/dist/`、Spring Boot 后端与测试数据库；Nginx `/api/` 反向代理到只监听本机的 `127.0.0.1:18080`。
 - 后端由 systemd 的 `life-wallet-api.service` 托管，MySQL 由 `/opt/life-wallet-test/compose.yml` 托管。测试机复用已缓存的 MySQL 8.0 镜像，Compose 默认仍为 MySQL 8.4，可通过服务器 `.env` 的 `MYSQL_IMAGE` 覆盖。
-- DeepSeek 一次性导入文件当前为空，数据库中也没有可加载密钥，Agent 请求返回 `AGENT_NOT_CONFIGURED`；配置轮换后的密钥并重启服务后才能验证真实 Agent。HTTPS 仍未配置，不能保证手机麦克风能力。
+- DeepSeek 一次性导入文件当前已清空，API Key 以 AES-256-GCM 密文保存在数据库中；服务重启从数据库解密加载和真实 Agent 调用均已验证。HTTPS 仍未配置，不能保证手机麦克风能力。
 
 ## 发布
 
@@ -184,4 +184,4 @@ ssh jd "ln -sfn /var/www/life-wallet/releases/<PREVIOUS_RELEASE> /var/www/life-w
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
-至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口，不满足可靠的麦克风安全上下文要求；DeepSeek 密钥也尚未配置，完成 HTTPS 与密钥配置前不能把它描述为 Agent / 语音完整可用环境。
+至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口，不满足可靠的麦克风安全上下文要求；真实 Agent 已可用，但完成 HTTPS 前仍不能把它描述为语音完整可用环境。

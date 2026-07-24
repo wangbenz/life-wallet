@@ -2852,18 +2852,29 @@ body.calendar-open {
 }
 
 /* Life Agent */
+.agent-shell {
+  height: 100dvh;
+  overflow: hidden;
+}
+
 .agent-shell .content-scroll {
+  min-height: 0;
+  overflow: hidden;
   padding-bottom: 0;
 }
 
 .agent-screen {
-  min-height: 100dvh;
-  /* 为固定输入框预留完整操作区，长对话底部的确认按钮也能滚到可点击位置。 */
-  padding-bottom: 210px;
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  padding-bottom: 0;
+  overflow: hidden;
 }
 
 .agent-page-header {
-  position: sticky;
+  position: relative;
+  flex: 0 0 auto;
   z-index: 15;
   top: 0;
   display: grid;
@@ -2951,6 +2962,17 @@ body.calendar-open {
   background: #fff3d5;
   font-size: 12px;
   line-height: 1.65;
+}
+
+.agent-scroll-region {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 24px;
+  overscroll-behavior-y: contain;
+  scroll-padding-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .agent-conversation {
@@ -3046,11 +3068,15 @@ body.calendar-open {
 }
 
 .agent-confirm-card {
+  position: sticky;
+  z-index: 6;
+  bottom: 0;
   margin-left: 43px;
   padding: 17px;
   border: 1px solid #cfe3d1;
   border-radius: 18px;
   background: #f2faef;
+  box-shadow: 0 12px 30px rgb(31 74 45 / 12%);
 }
 
 .agent-confirm-card h2 {
@@ -3175,17 +3201,15 @@ body.calendar-open {
 }
 
 .agent-composer {
-  position: fixed;
+  position: relative;
   z-index: 20;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 46px;
-  width: min(100%, 680px);
-  margin: 0 auto;
+  width: auto;
+  margin: 0 -34px;
   gap: 9px;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px 34px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid #e3e5dc;
   background: rgb(255 251 244 / 97%);
   backdrop-filter: blur(18px);
@@ -3297,6 +3321,13 @@ body.calendar-open {
   .agent-page-header {
     margin: -22px -18px 0;
     padding: 12px 18px;
+  }
+
+  .agent-composer {
+    margin-right: -18px;
+    margin-left: -18px;
+    padding-right: 18px;
+    padding-left: 18px;
   }
 
   .agent-confirm-card,

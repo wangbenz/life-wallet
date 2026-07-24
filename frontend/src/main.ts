@@ -675,32 +675,34 @@ function renderAgentScreen() {
         <span class="agent-status ${agentServiceState}" aria-label="${serviceStateLabel}" title="${serviceStateLabel}"></span>
       </header>
 
-      <div class="agent-scope-note">对话与必要的近期记录会发送给 DeepSeek；后端保存对话，但不重复保存本轮快照。我只查询当前匿名用户的记录，写操作都会先展示差异并等待确认。</div>
+      <div class="agent-scroll-region" id="agent-scroll-region">
+        <div class="agent-scope-note">对话与必要的近期记录会发送给 DeepSeek；后端保存对话，但不重复保存本轮快照。我只查询当前匿名用户的记录，写操作都会先展示差异并等待确认。</div>
 
-      <section class="agent-conversation" id="agent-conversation" aria-live="polite">
-        ${agentMessages.map((message) => `
-          <article class="agent-message ${message.role}">
-            ${message.role === 'agent' ? `<span class="message-avatar" aria-hidden="true">${renderIcon('agent')}</span>` : ''}
-            <div class="message-content"><p>${escapeHtml(message.content)}</p>${message.recordIds ? renderAgentRecordCards(message.recordIds) : ''}</div>
-          </article>
-        `).join('')}
-        ${isAgentThinking ? `<article class="agent-message agent"><span class="message-avatar" aria-hidden="true">${renderIcon('agent')}</span><div class="message-content thinking"><span></span><span></span><span></span></div></article>` : ''}
-        ${renderAgentPendingAction()}
-      </section>
+        <section class="agent-conversation" id="agent-conversation" aria-live="polite">
+          ${agentMessages.map((message) => `
+            <article class="agent-message ${message.role}">
+              ${message.role === 'agent' ? `<span class="message-avatar" aria-hidden="true">${renderIcon('agent')}</span>` : ''}
+              <div class="message-content"><p>${escapeHtml(message.content)}</p>${message.recordIds ? renderAgentRecordCards(message.recordIds) : ''}</div>
+            </article>
+          `).join('')}
+          ${isAgentThinking ? `<article class="agent-message agent"><span class="message-avatar" aria-hidden="true">${renderIcon('agent')}</span><div class="message-content thinking"><span></span><span></span><span></span></div></article>` : ''}
+          ${renderAgentPendingAction()}
+        </section>
 
-      ${agentPendingAction || isAgentThinking ? '' : `
-        <div class="agent-suggestions" aria-label="对话示例">
-          ${contextRecord && contextActivity ? `
-            <button type="button" data-agent-prompt="查看这条记录">查看这条记录</button>
-            <button type="button" data-agent-prompt="把这条记录的${escapeHtml(contextActivity.title)}改成${formatDuration(contextNewMinutes)}">修改这条记录</button>
-            <button type="button" data-agent-prompt="删除这条记录里的${escapeHtml(contextActivity.title)}">删除这条记录</button>
-          ` : `
-            <button type="button" data-agent-prompt="我今天记了什么？">我今天记了什么？</button>
-            <button type="button" data-agent-prompt="把今天的上班从 4 小时修改为 8 小时">修改今天的时长</button>
-            <button type="button" data-agent-prompt="记下今天散步 30 分钟">记下一段生活</button>
-          `}
-        </div>
-      `}
+        ${agentPendingAction || isAgentThinking ? '' : `
+          <div class="agent-suggestions" aria-label="对话示例">
+            ${contextRecord && contextActivity ? `
+              <button type="button" data-agent-prompt="查看这条记录">查看这条记录</button>
+              <button type="button" data-agent-prompt="把这条记录的${escapeHtml(contextActivity.title)}改成${formatDuration(contextNewMinutes)}">修改这条记录</button>
+              <button type="button" data-agent-prompt="删除这条记录里的${escapeHtml(contextActivity.title)}">删除这条记录</button>
+            ` : `
+              <button type="button" data-agent-prompt="我今天记了什么？">我今天记了什么？</button>
+              <button type="button" data-agent-prompt="把今天的上班从 4 小时修改为 8 小时">修改今天的时长</button>
+              <button type="button" data-agent-prompt="记下今天散步 30 分钟">记下一段生活</button>
+            `}
+          </div>
+        `}
+      </div>
 
       <form class="agent-composer" id="agent-form">
         <div class="voice-field">
@@ -1304,7 +1306,15 @@ function replaceDurationInContent(content: string, oldMinutes: number, newMinute
 }
 
 function scrollAgentToBottom() {
-  window.requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
+  window.requestAnimationFrame(() => {
+    const scrollRegion = document.querySelector<HTMLElement>('#agent-scroll-region');
+    if (!scrollRegion) return;
+    scrollRegion.scrollTop = scrollRegion.scrollHeight;
+    // iOS Safari 动态工具栏和输入法可能在首帧后再次改变可视高度，第二帧重新对齐底部。
+    window.requestAnimationFrame(() => {
+      scrollRegion.scrollTop = scrollRegion.scrollHeight;
+    });
+  });
 }
 
 async function initialize() {

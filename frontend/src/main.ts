@@ -14,6 +14,7 @@ import {
   Info,
   MessageCircleHeart,
   MessageCircleQuestion,
+  Mic,
   MoreHorizontal,
   NotebookTabs,
   PencilLine,
@@ -28,39 +29,69 @@ import {
   type IconNode,
 } from 'lucide';
 import { summarizeDimensions } from './mock/analysis.ts';
-import { resolveMockAgentIntent } from './mock/agent.ts';
+import { sendAgentMessage } from './api/agent.ts';
 import { getCalendarMonth, getYearPageStart, parseIsoDate, toIsoDate } from './calendar.ts';
 import {
-  clearMockUserData,
-  deleteMockRecord,
-  getMockAccount,
-  getMockExportData,
-  getMockGeneralFeedback,
-  getMockRecentRecords,
-  getMockRecordFeedback,
-  previewMockRecord,
-  saveMockAccount,
-  saveMockGeneralFeedback,
-  saveMockRecord,
-  saveMockRecordFeedback,
+  clearUserData,
+  deleteRecord as deleteRecordFromApi,
+  getAccount,
+  getExportData,
+  getGeneralFeedback,
+  getRecentRecords,
+  getRecordFeedback,
+  previewRecord,
+  saveAccount as saveAccountToApi,
+  saveGeneralFeedback,
+  saveRecord,
+  saveRecordFeedback,
   type Account,
   type FeedbackRating,
   type GeneralFeedback,
   type RecordFeedback,
   type RecordPreview,
   type TodayRecord,
-} from './mock/data.ts';
+} from './api/data.ts';
 
 type Tab = 'today' | 'life' | 'me';
 type LifeView = 'insights' | 'records';
 type CalendarTarget = 'record' | 'birthday';
 type CalendarView = 'days' | 'months' | 'years';
-type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'agent' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron' | 'insights' | 'records' | 'settings' | 'wallet' | 'more';
+type VoiceTarget = 'record' | 'agent';
+type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'agent' | 'send' | 'voice' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron' | 'insights' | 'records' | 'settings' | 'wallet' | 'more';
 type AgentMessage = { id: number; role: 'agent' | 'user'; content: string; recordIds?: number[] };
 type AgentPendingAction =
   | { type: 'create-record'; preview: RecordPreview }
   | { type: 'update-duration'; recordId: number; activityIndex: number; activityTitle: string; oldMinutes: number; newMinutes: number }
   | { type: 'delete-record'; recordId: number };
+
+type SpeechRecognitionResultEvent = Event & {
+  resultIndex: number;
+  results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
+};
+
+type SpeechRecognitionErrorEvent = Event & { error: string };
+
+type SpeechRecognitionLike = EventTarget & {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) throw new Error('App root element not found');
@@ -98,9 +129,15 @@ let calendarView: CalendarView = 'days';
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
 let agentDraft = '';
+let agentConversationId: string | null = null;
+let agentServiceState: 'unknown' | 'available' | 'unavailable' = 'unknown';
 let isAgentThinking = false;
 let agentPendingAction: AgentPendingAction | null = null;
 let agentContextRecordId: number | null = null;
+let activeVoiceTarget: VoiceTarget | null = null;
+let activeSpeechRecognition: SpeechRecognitionLike | null = null;
+let voiceStatusMessage = '';
+let voiceStatusTarget: VoiceTarget | null = null;
 let agentMessages: AgentMessage[] = [
   { id: 1, role: 'agent', content: '你好，我是 Life Agent。你可以让我查询、记录或修改生活片段；写操作会先请你确认。' },
 ];
@@ -192,7 +229,7 @@ function renderTodayOnboarding() {
         <span class="onboarding-mark">1</span>
         <p class="eyebrow">欢迎来到 Life Wallet</p>
         <h1>把每天的生活，记成看得懂的人生账单</h1>
-        <p>用一句话记录工作、生活和感受，再确认系统整理出的内容，慢慢看见时间花去了哪里。数据仅保存在当前浏览器。</p>
+        <p>用一句话记录工作、生活和感受，再确认系统整理出的内容，慢慢看见时间花去了哪里。确认后的记录会安全保存到测试服务。</p>
         <ol class="onboarding-value-path" aria-label="Life Wallet 使用流程">
           <li>记录一句生活</li>
           <li>确认整理结果</li>
@@ -217,7 +254,7 @@ function renderAccountOnboarding() {
         <span class="onboarding-mark">1</span>
         <p class="eyebrow">以天为时间尺度</p>
         <h1>看看你预计还拥有多少天</h1>
-        <p>生日和预期寿命只用于估算剩余天数，之后都可以修改。当前 Demo 不联网，数据仅保存在这个浏览器。</p>
+        <p>生日和预期寿命只用于估算剩余天数，之后都可以修改。设置会保存在测试服务，但不会发送给 DeepSeek。</p>
       </section>
       <section class="settings-section account-settings settings-group onboarding-account-card">
         ${renderAccountForm(birthday, expectedLifeYears, true)}
@@ -344,7 +381,11 @@ function renderComposer() {
   return `
     <form class="composer" id="record-form">
       <label class="record-date"><span>记录日期</span><input name="lifeDate" type="hidden" value="${recordLifeDate}" /><button class="date-trigger compact" type="button" data-open-calendar="record" aria-label="选择记录日期，当前为 ${formatCalendarTriggerDate(recordLifeDate)}">${renderIcon('calendar')}<span>${formatCalendarTriggerDate(recordLifeDate)}</span>${renderIcon('chevron')}</button></label>
-      <textarea name="content" maxlength="2000" rows="4" placeholder="例如：下午专注改了 3 小时 bug，晚上跑步 40 分钟…" required>${escapeHtml(recordDraft)}</textarea>
+      <div class="voice-field">
+        <textarea name="content" maxlength="2000" rows="4" placeholder="例如：下午专注改了 3 小时 bug，晚上跑步 40 分钟…" required>${escapeHtml(recordDraft)}</textarea>
+        ${renderVoiceButton('record')}
+        ${renderVoiceStatus('record')}
+      </div>
       <button type="submit" aria-label="整理这段记录" ${isAnalyzingRecord ? 'disabled' : ''}>${renderIcon('sparkles')}<span>${isAnalyzingRecord ? '正在整理…' : '整理这段记录'}</span></button>
       <p>${escapeHtml(recordMessage)}</p>
     </form>
@@ -483,14 +524,14 @@ function renderMe() {
     <section class="screen me-screen">
       <header class="page-heading me-heading">
         <div class="page-heading-row">
-          <div><p class="page-kicker">${renderIcon('settings')} My Space</p><h1>我的</h1><p>管理账户依据、隐私和保存在本机的数据。</p></div>
+          <div><p class="page-kicker">${renderIcon('settings')} My Space</p><h1>我的</h1><p>管理账户依据、隐私和测试数据。</p></div>
           <span class="heading-symbol peach" aria-hidden="true">${renderIcon('user')}</span>
         </div>
       </header>
 
       <section class="me-profile-card">
         <div class="profile-identity"><span class="profile-symbol">${renderIcon('user')}</span><div><p class="eyebrow">我的时间估算</p><h2>${account ? `${formatNumber(account.remainingLifeDays)} 天` : '还没有设置时间估算'}</h2><span>${account ? `按 ${expectedLifeYears} 岁预期寿命估算` : '设置后显示预计剩余天数'}</span></div></div>
-        <div class="local-status">${renderIcon('shield')} 仅保存在本机</div>
+        <div class="local-status">${renderIcon('shield')} 数据按当前浏览器标识隔离</div>
         <div class="profile-metrics">
           <div><span>记录日</span><strong>${recordDays}<em>天</em></strong></div>
           <div><span>生活记录</span><strong>${recentRecords.length}<em>条</em></strong></div>
@@ -504,17 +545,17 @@ function renderMe() {
       </section>
 
       <details class="settings-section privacy-card settings-group">
-        <summary><span class="settings-icon warm">${renderIcon('shield')}</span><span class="summary-copy"><small>隐私说明</small><strong>当前数据只保存在此浏览器</strong><em>展开查看数据边界</em></span>${renderIcon('chevron')}</summary>
-        <p>这个前端 Demo 不会把生日、记录或反馈发送到后端。清除浏览器数据后将无法恢复，你可以先导出备份。</p>
+        <summary><span class="settings-icon warm">${renderIcon('shield')}</span><span class="summary-copy"><small>隐私说明</small><strong>测试数据保存在服务端数据库</strong><em>展开查看数据边界</em></span>${renderIcon('chevron')}</summary>
+        <p>账户、确认记录和反馈按当前浏览器生成的匿名标识保存在测试服务。使用 Life Agent 时，对话与最多 20 条必要记录字段会交给 DeepSeek；后端保存对话，但不额外保存本轮快照。语音识别由浏览器提供，可能使用系统在线服务。“清除数据”会请求删除该匿名标识下的全部服务端数据。</p>
       </details>
 
       <section class="settings-section data-card settings-group">
         <div class="settings-group-heading"><span class="settings-icon blue">${renderIcon('database')}</span><div><p class="eyebrow">数据管理</p><h2>${recordDays} 个记录日 · ${recentRecords.length} 条记录</h2><small>先备份，再进行清理</small></div></div>
         <div class="data-actions settings-action-list">
-          <button type="button" class="settings-action" data-export-data><span class="action-symbol">${renderIcon('download')}</span><span><strong>导出备份文件</strong><small>保存账户、记录与本地反馈</small></span>${renderIcon('chevron')}</button>
+          <button type="button" class="settings-action" data-export-data><span class="action-symbol">${renderIcon('download')}</span><span><strong>导出备份文件</strong><small>导出账户、记录与反馈</small></span>${renderIcon('chevron')}</button>
           ${isClearDataConfirming
-            ? '<div class="danger-confirm"><p>清除后无法恢复，确定删除本机全部数据吗？</p><div><button type="button" class="danger" data-clear-data="confirm">确认清除</button><button type="button" data-clear-data="cancel">取消</button></div></div>'
-            : `<button type="button" class="settings-action danger-text" data-clear-data="ask"><span class="action-symbol danger">${renderIcon('trash')}</span><span><strong>清除本机数据</strong><small>删除账户、记录与反馈</small></span>${renderIcon('chevron')}</button>`}
+            ? '<div class="danger-confirm"><p>清除后无法恢复，确定删除当前匿名用户的全部测试数据吗？</p><div><button type="button" class="danger" data-clear-data="confirm">确认清除</button><button type="button" data-clear-data="cancel">取消</button></div></div>'
+            : `<button type="button" class="settings-action danger-text" data-clear-data="ask"><span class="action-symbol danger">${renderIcon('trash')}</span><span><strong>清除测试数据</strong><small>删除账户、记录、反馈与对话</small></span>${renderIcon('chevron')}</button>`}
         </div>
       </section>
 
@@ -526,7 +567,7 @@ function renderMe() {
         </summary>
         <form id="general-feedback-form">
           <textarea name="feedback" rows="3" maxlength="1000" placeholder="哪里让你困惑，或希望增加什么？" required></textarea>
-          <p class="feedback-boundary">当前 Demo 不联网提交，团队不会自动收到。</p>
+          <p class="feedback-boundary">反馈会保存到测试服务，同时复制一份方便你发送给体验邀请人。</p>
           <button type="submit" class="primary-action">${renderIcon('send')} 保存并复制反馈</button>
           <p class="form-message">${escapeHtml(feedbackMessage)}${generalFeedback.length > 0 && !feedbackMessage ? `已保存 ${generalFeedback.length} 条反馈。` : ''}</p>
         </form>
@@ -618,18 +659,23 @@ function renderAgentScreen() {
   const originLabel = tabLabel(agentOriginTab);
   const contextActivity = contextRecord?.activities[0];
   const contextNewMinutes = contextActivity ? Math.min(1440, contextActivity.durationMinutes + 30) : 60;
+  const serviceStateLabel = agentServiceState === 'available'
+    ? 'Agent 服务可用'
+    : agentServiceState === 'unavailable'
+      ? 'Agent 服务暂时不可用'
+      : '发送消息后确认 Agent 服务状态';
   return `
     <section class="screen agent-screen">
       <header class="agent-page-header">
         <button type="button" data-close-agent aria-label="返回${originLabel}">${renderIcon('back')}</button>
         <div class="agent-page-identity">
           <span>${renderIcon('agent')}</span>
-          <div><h1>Life Agent</h1><p>本地 Mock · 只处理生活记录</p></div>
+          <div><h1>Life Agent</h1><p>DeepSeek · 只处理生活记录</p></div>
         </div>
-        <span class="agent-status" aria-label="当前可用"></span>
+        <span class="agent-status ${agentServiceState}" aria-label="${serviceStateLabel}" title="${serviceStateLabel}"></span>
       </header>
 
-      <div class="agent-scope-note">我可以查询、新增、修改或删除本机记录。修改和删除都会先展示差异，确认后才执行。</div>
+      <div class="agent-scope-note">对话与必要的近期记录会发送给 DeepSeek；后端保存对话，但不重复保存本轮快照。我只查询当前匿名用户的记录，写操作都会先展示差异并等待确认。</div>
 
       <section class="agent-conversation" id="agent-conversation" aria-live="polite">
         ${agentMessages.map((message) => `
@@ -657,11 +703,32 @@ function renderAgentScreen() {
       `}
 
       <form class="agent-composer" id="agent-form">
-        <textarea name="message" rows="2" maxlength="2000" placeholder="${contextRecord ? '例如：把这条记录的工作改成 6 小时…' : '例如：把今天的上班从 4 小时改成 8 小时…'}" aria-label="给 Life Agent 发消息" required>${escapeHtml(agentDraft)}</textarea>
+        <div class="voice-field">
+          <textarea name="message" rows="2" maxlength="2000" placeholder="${contextRecord ? '例如：把这条记录的工作改成 6 小时…' : '例如：把今天的上班从 4 小时改成 8 小时…'}" aria-label="给 Life Agent 发消息" required>${escapeHtml(agentDraft)}</textarea>
+          ${renderVoiceButton('agent')}
+          ${renderVoiceStatus('agent')}
+        </div>
         <button type="submit" aria-label="发送给 Life Agent" ${isAgentThinking || agentPendingAction ? 'disabled' : ''}>${renderIcon('send')}</button>
       </form>
     </section>
   `;
+}
+
+function renderVoiceButton(target: VoiceTarget) {
+  const supported = supportsSpeechRecognition();
+  const listening = activeVoiceTarget === target;
+  const label = !supported
+    ? '当前浏览器不支持语音输入'
+    : listening
+      ? '停止语音输入'
+      : '开始语音输入';
+  return `<button type="button" class="voice-input${listening ? ' listening' : ''}" data-voice-input="${target}" aria-label="${label}" aria-pressed="${listening}" ${supported ? '' : 'disabled'}>${renderIcon('voice')}</button>`;
+}
+
+function renderVoiceStatus(target: VoiceTarget) {
+  return voiceStatusTarget === target && voiceStatusMessage
+    ? `<small class="voice-status" aria-live="polite">${escapeHtml(voiceStatusMessage)}</small>`
+    : '';
 }
 
 function tabLabel(tab: Tab) {
@@ -793,6 +860,10 @@ function bindEvents() {
 
   document.querySelector<HTMLTextAreaElement>('#record-form textarea[name="content"]')?.addEventListener('input', (event) => {
     recordDraft = (event.currentTarget as HTMLTextAreaElement).value;
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-voice-input]').forEach((button) => {
+    button.addEventListener('click', () => toggleVoiceInput(button.dataset.voiceInput as VoiceTarget));
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-open-calendar]').forEach((button) => {
@@ -937,6 +1008,81 @@ function syncVisibleDrafts() {
   if (expectedLifeInput?.value) accountExpectedLifeYearsDraft = Number(expectedLifeInput.value);
 }
 
+function supportsSpeechRecognition() {
+  return Boolean(window.SpeechRecognition ?? window.webkitSpeechRecognition);
+}
+
+function toggleVoiceInput(target: VoiceTarget) {
+  if (activeSpeechRecognition && activeVoiceTarget === target) {
+    activeSpeechRecognition.stop();
+    return;
+  }
+  activeSpeechRecognition?.abort();
+  const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+  if (!Recognition) {
+    voiceStatusTarget = target;
+    voiceStatusMessage = '当前浏览器不支持语音输入，请继续使用键盘。';
+    render();
+    return;
+  }
+
+  const recognition = new Recognition();
+  const baseText = target === 'record' ? recordDraft.trim() : agentDraft.trim();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for (let index = 0; index < event.results.length; index++) {
+      transcript += event.results[index][0]?.transcript ?? '';
+    }
+    const nextValue = [baseText, transcript.trim()].filter(Boolean).join('，');
+    if (target === 'record') recordDraft = nextValue;
+    else agentDraft = nextValue;
+    const selector = target === 'record'
+      ? '#record-form textarea[name="content"]'
+      : '#agent-form textarea[name="message"]';
+    const textarea = document.querySelector<HTMLTextAreaElement>(selector);
+    if (textarea) textarea.value = nextValue;
+  };
+  recognition.onerror = (event) => {
+    voiceStatusTarget = target;
+    voiceStatusMessage = event.error === 'not-allowed'
+      ? '需要允许浏览器使用麦克风。'
+      : event.error === 'no-speech'
+        ? '没有听清，请再试一次。'
+        : '语音输入暂时不可用，请改用键盘。';
+  };
+  recognition.onend = () => {
+    activeSpeechRecognition = null;
+    activeVoiceTarget = null;
+    if (!voiceStatusMessage || voiceStatusMessage === '正在听；语音识别由当前浏览器提供。') {
+      voiceStatusMessage = '语音已转成文字，请检查后再发送。';
+    }
+    voiceStatusTarget = target;
+    render();
+    const selector = target === 'record'
+      ? '#record-form textarea[name="content"]'
+      : '#agent-form textarea[name="message"]';
+    document.querySelector<HTMLTextAreaElement>(selector)?.focus();
+  };
+
+  activeSpeechRecognition = recognition;
+  activeVoiceTarget = target;
+  voiceStatusTarget = target;
+  voiceStatusMessage = '正在听；语音识别由当前浏览器提供。';
+  render();
+  try {
+    recognition.start();
+  } catch {
+    activeSpeechRecognition = null;
+    activeVoiceTarget = null;
+    voiceStatusMessage = '语音输入启动失败，请再试一次。';
+    render();
+  }
+}
+
 function openCalendar(target: CalendarTarget) {
   syncVisibleDrafts();
   calendarTarget = target;
@@ -1023,51 +1169,65 @@ async function handleAgentMessage(message: string) {
   const content = message.trim();
   if (!content || isAgentThinking || agentPendingAction) return;
 
+  voiceStatusMessage = '';
+  voiceStatusTarget = null;
   agentMessages.push({ id: Date.now(), role: 'user', content });
   agentDraft = '';
   isAgentThinking = true;
   render();
   scrollAgentToBottom();
 
-  await new Promise((resolve) => window.setTimeout(resolve, 480));
-  const orderedRecords = agentContextRecordId
-    ? [
-      ...recentRecords.filter((record) => record.recordId === agentContextRecordId),
-      ...recentRecords.filter((record) => record.recordId !== agentContextRecordId),
-    ]
-    : recentRecords;
-  const intent = resolveMockAgentIntent(content, orderedRecords, todayValue(), agentContextRecordId);
-
-  if (intent.kind === 'create') {
-    try {
-      const preview = await previewMockRecord({ lifeDate: todayValue(), content: intent.content });
-      agentMessages.push({ id: Date.now() + 1, role: 'agent', content: '我整理出一条新记录。确认后才会保存到本机。' });
+  try {
+    const response = await sendAgentMessage({
+      conversationId: agentConversationId,
+      message: content,
+      lifeDate: todayValue(),
+      contextRecordId: agentContextRecordId,
+      records: recentRecords,
+    });
+    agentConversationId = response.conversationId;
+    agentServiceState = 'available';
+    agentMessages.push({
+      id: Date.now() + 1,
+      role: 'agent',
+      content: response.message,
+      recordIds: response.recordIds.length > 0 ? response.recordIds : undefined,
+    });
+    const pending = response.pendingAction;
+    if (pending?.type === 'CREATE_RECORD' && pending.content && pending.lifeDate) {
+      const preview = await previewRecord({ lifeDate: pending.lifeDate, content: pending.content });
       agentPendingAction = { type: 'create-record', preview };
-    } catch (error) {
-      agentMessages.push({ id: Date.now() + 1, role: 'agent', content: error instanceof Error ? error.message : '暂时无法整理这段记录。' });
+    } else if (
+      pending?.type === 'UPDATE_DURATION'
+      && pending.recordId !== null
+      && pending.activityIndex !== null
+      && pending.activityTitle
+      && pending.oldMinutes !== null
+      && pending.newMinutes !== null
+    ) {
+      agentPendingAction = {
+        type: 'update-duration',
+        recordId: pending.recordId,
+        activityIndex: pending.activityIndex,
+        activityTitle: pending.activityTitle,
+        oldMinutes: pending.oldMinutes,
+        newMinutes: pending.newMinutes,
+      };
+    } else if (pending?.type === 'DELETE_RECORD' && pending.recordId !== null) {
+      agentPendingAction = { type: 'delete-record', recordId: pending.recordId };
     }
-  } else if (intent.kind === 'list') {
-    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message, recordIds: intent.recordIds });
-  } else if (intent.kind === 'update-duration') {
-    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message });
-    agentPendingAction = {
-      type: 'update-duration',
-      recordId: intent.recordId,
-      activityIndex: intent.activityIndex,
-      activityTitle: intent.activityTitle,
-      oldMinutes: intent.oldMinutes,
-      newMinutes: intent.newMinutes,
-    };
-  } else if (intent.kind === 'delete-record') {
-    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message });
-    agentPendingAction = { type: 'delete-record', recordId: intent.recordId };
-  } else {
-    agentMessages.push({ id: Date.now() + 1, role: 'agent', content: intent.message });
+  } catch (error) {
+    agentServiceState = 'unavailable';
+    agentMessages.push({
+      id: Date.now() + 1,
+      role: 'agent',
+      content: error instanceof Error ? error.message : 'Life Agent 暂时不可用，请稍后再试。',
+    });
+  } finally {
+    isAgentThinking = false;
+    render();
+    scrollAgentToBottom();
   }
-
-  isAgentThinking = false;
-  render();
-  scrollAgentToBottom();
 }
 
 async function confirmAgentAction() {
@@ -1078,7 +1238,7 @@ async function confirmAgentAction() {
 
   try {
     if (action.type === 'create-record') {
-      const saved = await saveMockRecord(action.preview);
+      const saved = await saveRecord(action.preview);
       upsertRecentRecord(saved);
       agentMessages.push({ id: Date.now(), role: 'agent', content: '已经保存这条记录。你可以继续补充，或者让我查询今天的记录。', recordIds: [saved.recordId] });
     } else if (action.type === 'update-duration') {
@@ -1088,7 +1248,7 @@ async function confirmAgentAction() {
         ? { ...activity, durationMinutes: action.newMinutes, estimated: false }
         : { ...activity });
       const dimensionSummary = summarizeDimensions(activities);
-      const saved = await saveMockRecord({
+      const saved = await saveRecord({
         lifeDate: record.lifeDate,
         content: replaceDurationInContent(record.content, action.oldMinutes, action.newMinutes, action.activityTitle),
         summary: buildRecordSummary(dimensionSummary, record.stateDescription),
@@ -1100,9 +1260,9 @@ async function confirmAgentAction() {
       upsertRecentRecord(saved);
       agentMessages.push({ id: Date.now(), role: 'agent', content: `已经把“${action.activityTitle}”从 ${formatDuration(action.oldMinutes)}改为 ${formatDuration(action.newMinutes)}。`, recordIds: [saved.recordId] });
     } else {
-      recentRecords = await deleteMockRecord(action.recordId);
+      recentRecords = await deleteRecordFromApi(action.recordId);
       recordFeedback = recordFeedback.filter((item) => item.recordId !== action.recordId);
-      agentMessages.push({ id: Date.now(), role: 'agent', content: '这条记录已经从本机删除。' });
+      agentMessages.push({ id: Date.now(), role: 'agent', content: '这条记录已经删除。' });
       if (agentContextRecordId === action.recordId) agentContextRecordId = null;
     }
   } catch (error) {
@@ -1150,10 +1310,12 @@ function scrollAgentToBottom() {
 async function initialize() {
   try {
     [account, recentRecords, recordFeedback, generalFeedback] = await Promise.all([
-      getMockAccount(), getMockRecentRecords(), getMockRecordFeedback(), getMockGeneralFeedback(),
+      getAccount(), getRecentRecords(), getRecordFeedback(), getGeneralFeedback(),
     ]);
     accountBirthdayDraft = account?.birthday ?? null;
     accountExpectedLifeYearsDraft = account?.expectedLifeYears ?? null;
+  } catch (error) {
+    formMessage = error instanceof Error ? error.message : '暂时无法连接测试服务，请稍后刷新。';
   } finally {
     isLoading = false;
     render();
@@ -1161,6 +1323,8 @@ async function initialize() {
 }
 
 async function analyzeRecord(content: string, lifeDate: string) {
+  voiceStatusMessage = '';
+  voiceStatusTarget = null;
   recordDraft = content.trim();
   recordLifeDate = lifeDate;
   recordMessage = '';
@@ -1168,7 +1332,7 @@ async function analyzeRecord(content: string, lifeDate: string) {
   isAnalyzingRecord = true;
   render();
   try {
-    recordPreview = await previewMockRecord({ lifeDate, content });
+    recordPreview = await previewRecord({ lifeDate, content });
     recordMessage = '请确认 AI 对这段记录的理解。';
   } catch (error) {
     recordMessage = error instanceof Error ? error.message : '暂时无法理解这条记录，请稍后再试。';
@@ -1212,7 +1376,7 @@ async function confirmPreview() {
   recordMessage = '正在保存这段记录...';
   render();
   try {
-    const saved = await saveMockRecord(recordPreview, editingRecordId);
+    const saved = await saveRecord(recordPreview, editingRecordId);
     upsertRecentRecord(saved);
     recordPreview = null;
     recordDraft = '';
@@ -1225,7 +1389,7 @@ async function confirmPreview() {
 }
 
 async function submitRecordFeedback(recordId: number, rating: FeedbackRating) {
-  recordFeedback = await saveMockRecordFeedback(recordId, rating);
+  recordFeedback = await saveRecordFeedback(recordId, rating);
   render();
 }
 
@@ -1255,7 +1419,7 @@ async function handleDeleteRecord(recordId: number, action: string) {
     render();
     return;
   }
-  recentRecords = await deleteMockRecord(recordId);
+  recentRecords = await deleteRecordFromApi(recordId);
   recordFeedback = recordFeedback.filter((item) => item.recordId !== recordId);
   pendingDeleteRecordId = null;
   openRecordMenuId = null;
@@ -1267,7 +1431,7 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
   formMessage = '正在保存...';
   render();
   try {
-    account = await saveMockAccount(payload);
+    account = await saveAccountToApi(payload);
     accountBirthdayDraft = account.birthday;
     accountExpectedLifeYearsDraft = account.expectedLifeYears;
     isAccountDirty = false;
@@ -1286,7 +1450,7 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
 }
 
 async function exportData() {
-  const data = await getMockExportData();
+  const data = await getExportData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1309,7 +1473,7 @@ async function handleClearData(action: string) {
     render();
     return;
   }
-  await clearMockUserData();
+  const serverDataCleared = await clearUserData();
   account = null;
   recentRecords = [];
   recordFeedback = [];
@@ -1321,9 +1485,13 @@ async function handleClearData(action: string) {
   isFeedbackExpanded = false;
   accountBirthdayDraft = null;
   accountExpectedLifeYearsDraft = null;
+  agentConversationId = null;
+  agentServiceState = 'unknown';
   activeTab = 'today';
   isAccountOnboarding = false;
-  formMessage = '本机中的 Life Wallet 数据已清除。';
+  formMessage = serverDataCleared
+    ? '当前匿名用户的测试数据已清除。'
+    : '后端暂时不可用，未能确认删除测试数据。';
   render();
 }
 
@@ -1333,11 +1501,11 @@ async function submitGeneralFeedback(content: string) {
   feedbackMessage = '正在保存并复制...';
   render();
   try {
-    generalFeedback = await saveMockGeneralFeedback(normalizedContent);
+    generalFeedback = await saveGeneralFeedback(normalizedContent);
     const copied = await copyTextToClipboard(`Life Wallet 体验反馈\n${normalizedContent}`);
     feedbackMessage = copied
-      ? '已保存在当前浏览器并复制，请粘贴给体验邀请人。'
-      : '已保存在当前浏览器；浏览器未允许复制，请手动复制后发送给体验邀请人。';
+      ? '反馈已保存到测试服务并复制，请粘贴给体验邀请人。'
+      : '反馈已保存到测试服务；浏览器未允许复制，可手动复制后发送。';
   } catch (error) {
     feedbackMessage = error instanceof Error ? error.message : '保存失败，请稍后再试。';
   }
@@ -1374,6 +1542,7 @@ function renderIcon(name: IconName) {
     info: Info,
     agent: MessageCircleHeart,
     send: ArrowUp,
+    voice: Mic,
     calendar: CalendarDays,
     edit: PencilLine,
     shield: ShieldCheck,

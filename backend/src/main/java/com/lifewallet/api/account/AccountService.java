@@ -12,41 +12,46 @@ import com.lifewallet.api.common.ApiException;
 @Service
 public class AccountService {
 
-    private static final long ACCOUNT_ID = 1L;
+    private static final String TEST_OWNER_KEY = "test-owner";
 
-    private final AccountStore accountStore;
+    private final AccountPersistence accountStore;
     private final Clock clock;
 
     @Autowired
-    public AccountService(AccountStore accountStore) {
+    public AccountService(AccountPersistence accountStore) {
         this(accountStore, Clock.systemDefaultZone());
     }
 
-    AccountService(AccountStore accountStore, Clock clock) {
+    AccountService(AccountPersistence accountStore, Clock clock) {
         this.accountStore = accountStore;
         this.clock = clock;
     }
 
     public AccountResponse getAccount() {
-        return accountStore.find()
+        return getAccount(TEST_OWNER_KEY);
+    }
+
+    public AccountResponse getAccount(String ownerKey) {
+        return accountStore.find(ownerKey)
                 .map(this::toResponse)
                 .orElseThrow(() -> new ApiException("ACCOUNT_NOT_FOUND", "还没有创建人生账户。"));
     }
 
     public AccountResponse saveAccount(AccountRequest request) {
+        return saveAccount(TEST_OWNER_KEY, request);
+    }
+
+    public AccountResponse saveAccount(String ownerKey, AccountRequest request) {
         LocalDate today = LocalDate.now(clock);
 
         if (request.birthday().isAfter(today)) {
             throw new ApiException("INVALID_BIRTHDAY", "生日不能晚于今天。");
         }
+        if (!request.birthday().plusYears(request.expectedLifeYears()).isAfter(today)) {
+            throw new ApiException("INVALID_EXPECTED_LIFE", "预期寿命需要大于当前年龄，且不超过 120 岁。");
+        }
 
-        AccountState account = new AccountState(
-                ACCOUNT_ID,
-                request.birthday(),
-                request.expectedLifeYears()
-        );
-
-        accountStore.save(account);
+        AccountState account = accountStore.save(ownerKey, request.birthday(), request.expectedLifeYears());
         return toResponse(account);
     }
 

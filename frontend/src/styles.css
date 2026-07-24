@@ -1345,6 +1345,59 @@ button:not(:disabled):active {
   line-height: 1.7;
 }
 
+.voice-field {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.voice-field textarea {
+  padding-right: 58px;
+}
+
+.voice-input {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #d7e5d8;
+  border-radius: 12px;
+  color: var(--green-800);
+  background: #fffefa;
+  box-shadow: 0 5px 14px rgb(52 95 63 / 9%);
+  cursor: pointer;
+}
+
+.voice-input .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.voice-input.listening {
+  border-color: #efb9a8;
+  color: #b75e49;
+  background: #fff1eb;
+  box-shadow: 0 0 0 4px rgb(225 119 86 / 11%);
+}
+
+.voice-input:disabled {
+  color: #a2aaa4;
+  background: #f3f4f1;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.voice-status {
+  color: #6f7b73;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .history-summary {
   margin: 9px 0 0;
   padding-left: 11px;
@@ -2876,8 +2929,18 @@ body.calendar-open {
   width: 9px;
   height: 9px;
   border-radius: 50%;
+  background: #b8b6ae;
+  box-shadow: 0 0 0 4px #efeee9;
+}
+
+.agent-status.available {
   background: #58ae72;
   box-shadow: 0 0 0 4px #e7f5e9;
+}
+
+.agent-status.unavailable {
+  background: #d76b61;
+  box-shadow: 0 0 0 4px #fae8e5;
 }
 
 .agent-scope-note {
@@ -3128,17 +3191,26 @@ body.calendar-open {
   backdrop-filter: blur(18px);
 }
 
+.agent-composer .voice-field {
+  align-self: end;
+}
+
 .agent-composer textarea {
   width: 100%;
   min-height: 48px;
   max-height: 110px;
   resize: none;
-  padding: 12px 14px;
+  padding: 12px 54px 12px 14px;
   border: 1px solid #dbe4d8;
   border-radius: 16px;
   color: var(--ink);
   background: #fffefa;
   line-height: 1.55;
+}
+
+.agent-composer .voice-input {
+  top: 5px;
+  right: 5px;
 }
 
 .agent-composer > button {

@@ -1,0 +1,24 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: life_wallet
+      MYSQL_USER: life_wallet
+      MYSQL_PASSWORD: ${LIFE_WALLET_DB_PASSWORD:?set LIFE_WALLET_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${LIFE_WALLET_DB_ROOT_PASSWORD:?set LIFE_WALLET_DB_ROOT_PASSWORD}
+      TZ: Asia/Shanghai
+    ports:
+      # 仅监听服务器本机，数据库不直接暴露到公网。
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - life-wallet-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  life-wallet-mysql:

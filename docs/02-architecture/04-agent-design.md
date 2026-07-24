@@ -1,7 +1,7 @@
 # Life Wallet Agent Design & Learning Roadmap
 
-Status: In Review
-Stage: H5 Demo Coding / Agent Learning
+Status: Active
+Stage: Real Agent Vertical Slice
 Last Updated: 2026-07-24
 Owner: Human + Codex
 
@@ -18,7 +18,7 @@ Owner: Human + Codex
   > 早期 Discovery 与旧版 MVP 草案
 ```
 
-当前代码已经跑通一条确定性流水线：
+后端原有确定性流水线继续保留：
 
 ```text
 IntentRecognizer
@@ -28,17 +28,26 @@ IntentRecognizer
   → RecordStore
 ```
 
-这条流水线适合学习结构化处理，但还不是完整 Agent：它没有“模型决策 → 调用 Tool → 读取结果 → 再决策”的循环，也没有独立的对话状态。
+在此之外，Life Agent 对话页已经新增真实 Agent vertical slice：
+
+```text
+H5 对话 + 必要记录快照
+  → DeepSeek 决策
+  → 白名单 Tool
+  → ToolResult 回填
+  → 最终回答或待确认写动作
+```
 
 从代码得到的关键事实：
 
-- `LifeModelClient` 当前由规则版 `LightweightLifeAgent` 实现，没有调用外部 LLM。
+- Today 的首次记录解析仍由规则版 `LightweightLifeAgent` / 前端 Mock 完成；Life Agent 对话使用 `DeepSeekAgentModel`。
 - `IntentRecognizer` 只生成标签，没有控制后续分支；`MODIFY_RECORD` 和 `VIEW_SUMMARY` 仍会继续抽取并保存成新记录。
 - `POST /api/agent/records` 把所有输入都当业务记录处理；例如“你好”也可能被保存为 60 分钟的“生活”活动。
-- 当前没有 Tool 抽象、Agent loop、Conversation / Turn，也没有写操作确认机制。
-- Account、Record 和会话都没有数据库持久化；前两者使用进程内存 Store，会话状态尚不存在。
+- `AgentRuntime` 已实现最多 4 步的模型—Tool 循环，`AgentToolRegistry` 提供 1 个读 Tool 和 3 个待确认写 Tool。
+- `JdbcConversationStore` 已使用 `agent_conversation` / `agent_turn` 保存消息和 `clientTurnId` 幂等结果；H5 用安装级随机 `ownerKey` 隔离会话。
+- JDBC 已确认记录是当前事实源。H5 每轮只把最多 20 条必要记录快照交给 Agent；写 Tool 不直接持久化，用户确认后由受控记录 API 执行。
 
-因此下一步不应该先增加更多意图关键词，而应先让意图真正决定“直接回复、调用读 Tool、调用写 Tool或追问”。
+下一步重点不是扩大 Tool 数量，而是用真实样例评估 Tool 选择、参数提取、边界拒答和写前确认。
 
 ## 1. MVP 范围
 
@@ -79,14 +88,14 @@ Agent 闭环：观察上下文 → 选择行动 → 调用 Tool → 观察结果
 
 | 模块 | 职责 | 当前代码 | 下一步 |
 |---|---|---|---|
-| `frontend` | Today / Life / Me、对话输入、结果卡片 | 已有 | 增加会话标识、消息状态和反馈入口 |
+| `frontend` | Today / Life / Me、对话输入、结果卡片 | 已有会话标识、真实 Agent API、写前确认和语音输入 | 增加真实用户评估与失败反馈 |
 | `account` | 人生账户与余额计算 | 已有 | 保持稳定 |
 | `record` | 生活记录、Activity 结果、查询 | 已有 | 从 Agent 编排中抽离为可调用业务服务 |
 | `ontology` | Activity 粒度与 Life Dimension 规则 | 逻辑位于 `agent` | 保留规则兜底，逐步形成独立领域能力 |
-| `agent.runtime` | Agent 循环、步数限制、终止与异常处理 | 缺失 | 第二阶段核心 |
-| `agent.model` | 把上下文交给模型并得到下一步 Action | 仅有规则版 `LifeModelClient` | 先定义接口，再接真实模型 |
-| `agent.tool` | Tool 定义、注册、参数校验、执行和结果返回 | 缺失 | 第二阶段核心 |
-| `conversation` | Conversation / Turn / PendingAction | 缺失 | 第二阶段先做内存版 |
+| `agent.runtime` | Agent 循环、步数限制、终止与异常处理 | 已实现，最多 4 步 | 增加评估与精简 trace |
+| `agent.model` | 把上下文交给模型并得到下一步 Action | 已实现 DeepSeek 适配与测试替身 | 增加重试策略和模型评估 |
+| `agent.tool` | Tool 定义、注册、参数校验、执行和结果返回 | 已实现记录查询及 3 个待确认写 Tool | 根据验证决定是否扩展 |
+| `conversation` | Conversation / Turn / PendingAction | 已实现 JDBC 会话、结构化 PendingAction 和请求幂等 | 根据验证增加清理策略 |
 | `feedback` | 保存用户对解析结果的评价 | 文档有，代码缺失 | MVP 后续补齐 |
 | `common` | 统一错误、校验与观测信息 | 部分已有 | 增加 Agent 错误码和 traceId |
 
@@ -227,18 +236,16 @@ public interface LifeTool<I, O> {
 
 `ToolDefinition` 至少包含：`name`、`description`、`inputSchema`、`readOnly`。Runtime 负责参数反序列化、Schema 校验、权限检查、超时和异常转换，Tool 只负责调用业务 Service。
 
-### 5.2 第一阶段 Tool 集合
+### 5.2 当前已实现 Tool 集合
 
 | Tool | 类型 | 用途 | 是否需要确认 |
 |---|---|---|---|
-| `get_life_account` | 读 | 获取剩余天数估算与账户设置 | 否 |
-| `get_today_record` | 读 | 获取某个生活日的最新记录 | 否 |
-| `list_recent_records` | 读 | 获取最近记录，支持轻量复盘 | 否 |
-| `create_life_record` | 写 | 保存原文并生成 Activity / 汇总 / 总结 | 用户明确说“记录/记下”时不再二次确认；推断写入时需要 |
-| `replace_life_record` | 写 | 修改或重新解析已有记录 | 是 |
-| `save_record_feedback` | 写 | 保存准确度与补充意见 | 用户明确提交时不再二次确认 |
+| `list_records` | 读 | 查询今天、近期或请求上下文中的记录快照 | 否 |
+| `create_life_record` | 写建议 | 生成生活记录内容和生活日 | 是 |
+| `update_activity_duration` | 写建议 | 修改指定记录、指定活动的时长 | 是，且必须先读 |
+| `delete_life_record` | 写建议 | 删除指定记录 | 是，且必须先读 |
 
-Tool 返回结构化结果，不返回给用户看的长文案。最终表达由 Agent 根据 ToolResult 生成。
+Tool 返回结构化结果，不直接改动数据库。最终表达由 Agent 生成，业务变更由前端依据 `pendingAction` 展示差异，确认后调用记录 API。
 
 ### 5.3 Tool 选择原则
 
@@ -305,7 +312,7 @@ Agent 需要循环，是因为模型在调用 Tool 前并不知道真实结果�
 - 不做 RAG、Embedding、向量数据库和长期 Memory。
 - 不做多 Agent、任务规划器、并行 Tool Call 和后台自治任务。
 - 不做通用问答、联网搜索、新闻、天气或百科助手。
-- 不做语音、微信小程序、微信登录和复杂多用户权限。
+- 不做服务端音频上传或语音模型；H5 只使用浏览器语音转文字。暂不做微信小程序、微信登录和复杂多用户权限。
 - 不做周报、月报、人生质量评分和强主动建议。
 - 不让模型直接访问 Repository 或拼 SQL；只能调用白名单 Tool。
 - 不把完整 Tool trace 暴露给普通用户；开发环境可记录精简 trace。
@@ -327,7 +334,7 @@ Agent 需要循环，是因为模型在调用 Tool 前并不知道真实结果�
 
 出口：能清楚解释当前代码为什么“像 Agent 工作流，但还没有 Agent loop 和 Tool”。
 
-### 阶段 2：搭建最小可运行自定义 Agent（难度：中）
+### 阶段 2：搭建最小可运行自定义 Agent（已完成，难度：中）
 
 任务：实现 `AgentRuntime`、`AgentAction`、`ToolRegistry`、三个只读/写入 Tool、内存 `ConversationStore` 和 `maxSteps`。
 
@@ -342,9 +349,11 @@ Agent 需要循环，是因为模型在调用 Tool 前并不知道真实结果�
 
 出口：至少跑通并测试三条路径：闲聊直接回复、记录调用写 Tool、查询调用读 Tool。
 
-### 阶段 3：接入真实模型并建立可评估性（难度：中高）
+### 阶段 3：接入真实模型并建立可评估性（进行中，难度：中高）
 
-任务：在不改变 Runtime 和 Tool 接口的前提下，用真实 LLM 替换规则决策器；保留规则版作为测试替身。
+已完成：用 DeepSeek 替换对话决策器，保留测试替身，并覆盖读 Tool 循环、三类写确认、边界拒答和协议解析。
+
+待完成：建立固定真实样例集、精简 trace、成本观测和可控重试策略。
 
 学习：
 

@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:life_wallet_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  flyway:
+    enabled: true
+
+life-wallet:
+  agent:
+    deepseek:
+      base-url: http://127.0.0.1:1
+      api-key: test-only
+      api-key-file:
+      model: test-model
+      connect-timeout: 100ms
+      read-timeout: 100ms
+      max-steps: 4

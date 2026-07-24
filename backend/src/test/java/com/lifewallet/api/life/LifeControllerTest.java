@@ -30,7 +30,7 @@ class LifeControllerTest {
 
         LifeController controller = new LifeController(recordService);
 
-        assertThat(controller.getRecentRecords())
+        assertThat(controller.getRecentRecords("test-owner"))
                 .singleElement()
                 .satisfies(record -> assertThat(record.summary()).isEqualTo("今天主要投入在创造上。"));
     }

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
-    "test": "node --test src/mock/*.test.ts src/*.test.ts",
+    "test": "node --test src/mock/*.test.ts src/api/*.test.ts src/*.test.ts",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

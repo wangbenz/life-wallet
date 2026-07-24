@@ -3,10 +3,7 @@ package com.lifewallet.api.account;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.springframework.stereotype.Repository;
-
-@Repository
-public class AccountStore {
+public class AccountStore implements AccountPersistence {
 
     private final AtomicReference<AccountState> account = new AtomicReference<>();
 
@@ -16,5 +13,17 @@ public class AccountStore {
 
     public void save(AccountState accountState) {
         account.set(accountState);
+    }
+
+    @Override
+    public Optional<AccountState> find(String ownerKey) {
+        return find();
+    }
+
+    @Override
+    public AccountState save(String ownerKey, java.time.LocalDate birthday, int expectedLifeYears) {
+        AccountState saved = new AccountState(1L, birthday, expectedLifeYears);
+        save(saved);
+        return saved;
     }
 }

@@ -1,7 +1,7 @@
 # Development & Deployment
 
 Status: Active
-Last Updated: 2026-07-15
+Last Updated: 2026-07-24
 Owner: Human + Codex
 
 ## 本地前端
@@ -12,7 +12,7 @@ pnpm install
 pnpm dev
 ```
 
-打开 `http://127.0.0.1:5173`。当前前端是独立 Mock，数据保存在浏览器 `localStorage`，不需要后端。
+打开 `http://127.0.0.1:5173`。账户、记录、反馈和 Life 页面均需要下方后端服务；Life Agent 额外需要 DeepSeek 密钥。
 
 验证：
 
@@ -23,7 +23,21 @@ pnpm build
 
 ## 本地后端
 
-当前展示版不依赖后端。需要验证保留 API 时使用 JDK 21：
+使用 JDK 21。先配置 DeepSeek 密钥，密钥不能写入 `application.yml`、前端 `.env` 或 Git：
+
+```bash
+export DEEPSEEK_API_KEY='replace-with-a-rotated-key'
+```
+
+也可以把密钥放在只有服务账户可读的文件，通过路径注入：
+
+```bash
+export DEEPSEEK_API_KEY_FILE='/run/credentials/life-wallet.service/deepseek-api-key'
+```
+
+`DEEPSEEK_API_KEY` 优先于 `DEEPSEEK_API_KEY_FILE`。所谓“加密配置文件”不能解决应用最终必须解密的问题；生产环境应使用云 Secret Manager、systemd credentials 或权限为 `0600` 的挂载 secret 文件，由部署系统控制解密和权限。
+
+启动与验证：
 
 ```bash
 cd backend
@@ -33,6 +47,46 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home mvn spr
 
 健康检查：`http://127.0.0.1:8080/api/health`。
 
+### 数据库
+
+不配置数据库变量时，后端使用 `backend/data/` 下的文件型 H2，并在启动时自动执行 Flyway 迁移，适合单机开发。该目录已被 Git 忽略。
+
+账户、确认记录、反馈和 Agent 会话均使用该数据库。业务请求必须包含 `X-Life-Wallet-Owner-Key`；H5 会为新安装自动生成。不会扫描或导入旧的浏览器 `localStorage` 数据。
+
+本地或服务器 MySQL 8.4：
+
+```bash
+export LIFE_WALLET_DB_PASSWORD='replace-with-a-strong-password'
+export LIFE_WALLET_DB_ROOT_PASSWORD='replace-with-a-different-root-password'
+docker compose -f deploy/mysql/compose.yml up -d
+
+export DB_URL='jdbc:mysql://127.0.0.1:3306/life_wallet?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai'
+export DB_USERNAME='life_wallet'
+export DB_PASSWORD="$LIFE_WALLET_DB_PASSWORD"
+```
+
+数据库密码与 DeepSeek 密钥使用相同原则：只通过部署环境或 secret 文件/管理服务注入，不写入仓库。Flyway 会在 Spring Boot 启动时读取 `db/migration` 并自动校验、升级；不要在生产库手工修改已经执行过的迁移文件，结构变化应新增 `V2__...sql`。
+
+可选配置：
+
+| 环境变量 | 默认值 | 用途 |
+|---|---|---|
+| `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` | DeepSeek 兼容 API 根地址 |
+| `DEEPSEEK_MODEL` | `deepseek-v4-flash` | Agent 模型 |
+| `DEEPSEEK_API_KEY` | 空 | 直接注入密钥 |
+| `DEEPSEEK_API_KEY_FILE` | 空 | 从受限文件读取密钥 |
+| `DB_URL` | 本地文件型 H2 | JDBC 地址；部署环境设置为 MySQL |
+| `DB_USERNAME` | `sa` | 数据库用户 |
+| `DB_PASSWORD` | 空 | 数据库密码 |
+| `DB_POOL_SIZE` | `5` | 最大连接池大小 |
+
+前端开发服务器默认代理 `/api` 到 `http://127.0.0.1:8080`。后端使用其他端口时：
+
+```bash
+cd frontend
+VITE_AGENT_PROXY_TARGET=http://127.0.0.1:18081 pnpm dev
+```
+
 ## 测试环境
 
 - Web Server：Nginx。
@@ -40,7 +94,8 @@ JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home mvn spr
 - 站点目录：`/var/www/life-wallet/`。
 - 当前版本链接：`/var/www/life-wallet/current`。
 - Nginx 配置：`deploy/nginx/life-wallet.conf`。
-- 当前只部署 `frontend/dist/`，不部署后端和数据库。
+- 当前线上只部署早期 `frontend/dist/`，不部署本次真实 Agent 后端和数据库。
+- 本次功能发布前必须增加 Spring Boot 进程托管、`/api` 反向代理和 HTTPS；不能把 DeepSeek 密钥放进静态站点。
 
 ## 发布
 
@@ -72,6 +127,8 @@ ssh jd "sudo ln -sfn /etc/nginx/sites-available/life-wallet /etc/nginx/sites-ena
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
+测试服务器后端使用 `deploy/test/compose.yml` 运行 MySQL 8.4 与 JRE 21 容器。服务器目录 `/opt/life-wallet-test/` 包含 Compose、后端 jar、权限为 `0600` 的 `.env` 与 DeepSeek secret 文件；这些秘密不进入 Git。后端只监听 `127.0.0.1:18080`，由 Nginx `/api/` 代理。
+
 ## 冒烟测试
 
 ```bash
@@ -81,6 +138,13 @@ curl -fsSI http://<PUBLIC_IP>:15173/
 
 确认首页及其 JS / CSS 返回 `200`，并在手机浏览器检查 Today、Life、Me、保存和刷新恢复。
 
+真实 Agent 发布后还需检查：
+
+- 未登录用户无法从前端源码、响应、错误或日志中读到 DeepSeek 密钥。
+- 查询已有记录会返回真实卡片，新增 / 修改 / 删除都先出现确认卡。
+- DeepSeek 不可用时返回清晰错误，原有本地记录不受影响。
+- 在 HTTPS 手机浏览器中分别验证允许和拒绝麦克风权限；不支持语音时仍能输入文字。
+
 ## 回滚
 
 ```bash
@@ -89,4 +153,4 @@ ssh jd "ln -sfn /var/www/life-wallet/releases/<PREVIOUS_RELEASE> /var/www/life-w
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
-至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口；长期对外使用前再配置域名、合规检查和 HTTPS。
+至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口，不满足可靠的麦克风安全上下文要求，也尚无后端进程；完成 HTTPS 和后端部署前不能把它描述为本次 Agent / 语音功能的可用测试环境。

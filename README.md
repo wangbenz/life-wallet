@@ -13,18 +13,20 @@ Life Wallet（人生账单）是一个 Agent First 的 AI 人生理解系统。�
 
 当前阶段：H5 Demo Validation。
 
-当前已经完成两条可独立运行的 Demo 能力：
+当前已经完成本地优先的 H5 验证闭环，以及一条可选的真实 Agent 链路：
 
-- 后端保留已跑通的人生账户、Today 记录、规则版轻量 Agent 和最近记录 API。
-- 前端已切换为独立 Mock 原型模式，不依赖后端即可体验 Today、Life 和 Me 的完整核心交互。
+- Today、Life、Me 已通过安装级匿名 `ownerKey` 接入后端数据库，不要求登录；历史浏览器数据不迁移。
+- Life Agent 对话页已接入 Spring Boot 自定义 Agent Runtime，通过 DeepSeek Tool Calling 查询记录，或生成等待用户确认的新增、修改、删除动作。
+- Today 的首次记录理解通过后端规则解析服务生成预览，确认后才写入数据库；Life Agent 对话使用真实 DeepSeek。
+- 后端已加入 Flyway 管理的 MySQL 8.4 持久化；账户、确认记录、反馈、Agent 会话和幂等结果均使用 JDBC。
 
-当前前端原型包括聚焦式人生账户初始化、自然语言记录、关键词驱动的本地 Mock 理解、带原句来源的账单预览、确认保存、准确度反馈，以及基于真实本地记录的 Life 洞察 / 记录和精简 Me 页面。首次开户不再使用假默认生日，保存后直接进入 Today；预览确认区会主动进入视野并避开底部导航。成就、连续打卡、假趋势和无功能入口已退出首版。Mock 数据与函数统一放在 `frontend/src/mock/`，账户、记录与反馈使用 `localStorage` 保存。
+当前 H5 包括聚焦式账户初始化、后端记录预览、确认保存、准确度反馈、数据库驱动的 Life 洞察 / 记录和精简 Me 页面。首次开户保存后直接进入 Today；预览确认区会主动进入视野并避开底部导航。成就、连续打卡、假趋势和无功能入口已退出首版。
 
 当前视觉以产品原型为基准，统一为“清爽小程序 + 温和生活手账”：使用柔和绿色氛围、精致白色内容卡和明确的绿色主操作；Today 突出预计剩余天数与自然语言输入，Life 突出基于真实记录的阶段洞察，Me 使用一致的设置卡片。页面仍为真实 H5，不包含假手机框和假系统状态栏。
 
 全站图标统一使用按需导入的 Lucide 线性图标，Life Agent 使用温和的对话气泡符号，不再保留独立自绘机器人；Today 记录日期与 Me 出生日期统一使用支持月份和年份跳转的 H5 日历，不再调用系统原生日期面板。Agent 会保留 Today / Life 来源和目标历史记录上下文；历史卡片以 Agent 修改为主操作，手动修正与删除收进“更多”。主要触控目标按 H5 的 44px 尺寸收敛，并遵守系统的“减少动态效果”设置。
 
-当前 H5 原型已完成首轮京东云静态部署，Nginx 使用 `15173` 端口提供服务，公网访问已验证。下一步邀请 5-10 个目标用户完成 7 个记录日验证。Agent 学习主线仍是实现带循环、Tool 和对话状态的最小自定义 Agent，再逐步评估真实模型和 LangChain4j。
+文字输入在所有支持的浏览器可用；Today 与 Life Agent 同时提供渐进增强的语音转文字，识别能力和权限由当前浏览器提供。当前京东云仍是早期静态版本，Nginx 使用 `15173` 端口提供服务；真实 Agent 后端和 HTTPS 尚未发布到该环境。
 
 ## Workflow
 
@@ -54,7 +56,7 @@ Product understanding comes before implementation. 当前只实现 H5 Agent Demo
 
 ## Current Frontend Mode
 
-当前默认展示的是独立前端 Mock：
+H5 全部核心数据流程都需要启动后端；Life Agent 还需要配置 DeepSeek 密钥：
 
 ```bash
 cd frontend
@@ -62,6 +64,6 @@ pnpm install
 pnpm dev
 ```
 
-打开 `http://127.0.0.1:5173` 即可体验，不需要启动后端。后端代码仍保留在 `backend/`，用于后续恢复真实 API 集成，不应把前端 Mock 数据视为真实 Agent 分析结果。
+未启动后端时 H5 会提示测试服务不可用。后端启动和密钥配置见 `docs/03-delivery/02-operations.md`。
 
 本地测试、京东云发布和回滚见 `docs/03-delivery/02-operations.md`。

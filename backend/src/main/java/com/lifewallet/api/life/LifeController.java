@@ -4,13 +4,16 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 import com.lifewallet.api.record.RecordResponse;
 import com.lifewallet.api.record.RecordService;
 
 @RestController
 @RequestMapping("/api/life")
+@Validated
 public class LifeController {
 
     private final RecordService recordService;
@@ -20,7 +23,7 @@ public class LifeController {
     }
 
     @GetMapping("/recent-records")
-    public List<RecordResponse> getRecentRecords() {
-        return recordService.getRecentRecords();
+    public List<RecordResponse> getRecentRecords(@RequestHeader("X-Life-Wallet-Owner-Key") @jakarta.validation.constraints.Pattern(regexp = "[A-Za-z0-9_-]{8,64}") String ownerKey) {
+        return recordService.getRecentRecords(ownerKey);
     }
 }

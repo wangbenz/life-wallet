@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: life_wallet
+      MYSQL_USER: life_wallet
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD}
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  backend:
+    image: eclipse-temurin:21-jre-jammy
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: ["java", "-XX:MaxRAMPercentage=60", "-jar", "/app/life-wallet-api.jar"]
+    environment:
+      DB_URL: "jdbc:mysql://mysql:3306/life_wallet?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
+      DB_USERNAME: life_wallet
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+      DB_POOL_SIZE: 5
+      DEEPSEEK_API_KEY_FILE: /run/secrets/deepseek-api-key
+      DEEPSEEK_MODEL: deepseek-v4-flash
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:18080:8080"
+    volumes:
+      - ./life-wallet-api.jar:/app/life-wallet-api.jar:ro
+      - ./secrets/deepseek-api-key:/run/secrets/deepseek-api-key:ro
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+volumes:
+  mysql-data:

@@ -15,6 +15,7 @@ Environment=DB_USERNAME=life_wallet
 Environment=DB_POOL_SIZE=5
 Environment=SERVER_PORT=18080
 Environment=DEEPSEEK_API_KEY_FILE=/opt/life-wallet-test/secrets/deepseek-api-key
+Environment=DEEPSEEK_MASTER_KEY_FILE=/opt/life-wallet-test/secrets/deepseek-master-key
 Environment=DEEPSEEK_MODEL=deepseek-v4-flash
 Environment=TZ=Asia/Shanghai
 ExecStart=/usr/bin/java -Xms128m -Xmx640m -jar /opt/life-wallet-test/life-wallet-api.jar

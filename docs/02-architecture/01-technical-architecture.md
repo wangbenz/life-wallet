@@ -82,7 +82,7 @@ Today 预览由后端规则解析服务生成；Life Agent 对话使用真实 De
 | 生日、预期寿命、记录、反馈 | JDBC 数据库 | 主动删除前 |
 | Agent 会话消息与幂等结果 | JDBC 数据库 | 主动删除前 |
 | 本轮记录快照 | 请求内存 | 请求处理期间 |
-| DeepSeek 密钥 | 环境变量或受限 secret 文件 | 进程运行期间 |
+| DeepSeek 密钥 | JDBC 加密密文，受限文件保管主密钥 | 启动时解密到进程内存 |
 
 ### 2.6 Database Foundation
 
@@ -111,6 +111,7 @@ life_account
 | `experience_feedback` | Me 页整体体验反馈 |
 | `agent_conversation` | 对话容器、活动生活日和最近目标记录 |
 | `agent_turn` | 幂等标识、用户/Agent 消息、状态和待确认动作 |
+| `service_secret` | 服务端第三方密钥的 AES-256-GCM 密文、随机 nonce 和算法标识 |
 
 数据库约束承担不可绕过的最后一道校验：预期寿命、活动时长、固定维度、记录/轮次状态均有 `CHECK`；所有子表有外键；`client_turn_id` 全局唯一；常用的账户+日期、账户+创建时间、会话+创建时间均有索引。
 
@@ -128,7 +129,8 @@ life_account
 
 ## 4. 配置、安全与隐私
 
-- DeepSeek API Key 只能通过环境变量或受限 secret 文件注入，绝不进入版本库、前端包、日志或 API 响应。
+- DeepSeek API Key 首次从受限文件导入或轮换，使用独立的 32 字节主密钥以 AES-256-GCM 加密后写入 `service_secret`；应用启动时解密并只在进程内存中使用。
+- 数据库不保存主密钥；主密钥必须由部署环境的 `0600` 文件或 Secret Manager 单独保管。API Key 和主密钥都不得进入版本库、前端包、日志或 API 响应。
 - 前端永远拿不到模型密钥，只访问本站 `/api/agent/chat`。
 - 用户输入和记录快照都有数量与长度约束，模型输出和 Tool 参数必须校验。
 - 只上传 Agent 完成本轮任务所需的近期字段；生日、预期寿命和反馈不发送给 DeepSeek。

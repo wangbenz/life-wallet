@@ -9,6 +9,8 @@ public record DeepSeekProperties(
         String baseUrl,
         String apiKey,
         String apiKeyFile,
+        String masterKeyFile,
+        boolean secretPersistenceEnabled,
         String model,
         Duration connectTimeout,
         Duration readTimeout,

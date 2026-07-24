@@ -23,6 +23,8 @@ life-wallet:
       base-url: ${DEEPSEEK_BASE_URL:https://api.deepseek.com}
       api-key: ${DEEPSEEK_API_KEY:}
       api-key-file: ${DEEPSEEK_API_KEY_FILE:}
+      master-key-file: ${DEEPSEEK_MASTER_KEY_FILE:}
+      secret-persistence-enabled: ${DEEPSEEK_SECRET_PERSISTENCE_ENABLED:true}
       model: ${DEEPSEEK_MODEL:deepseek-v4-flash}
       connect-timeout: 5s
       read-timeout: 35s

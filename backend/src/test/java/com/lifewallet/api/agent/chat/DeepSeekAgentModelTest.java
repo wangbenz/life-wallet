@@ -54,14 +54,22 @@ class DeepSeekAgentModelTest {
                     "http://127.0.0.1:" + server.getAddress().getPort(),
                     "test-secret",
                     "",
+                    "",
+                    false,
                     "deepseek-v4-flash",
                     Duration.ofSeconds(1),
                     Duration.ofSeconds(2),
                     4
             );
+            DeepSeekApiKeyProvider keyProvider = new DeepSeekApiKeyProvider(
+                    properties,
+                    org.mockito.Mockito.mock(DeepSeekSecretStore.class),
+                    new DeepSeekSecretCipher()
+            );
+            keyProvider.afterPropertiesSet();
             DeepSeekAgentModel model = new DeepSeekAgentModel(
                     properties,
-                    new DeepSeekApiKeyProvider(properties),
+                    keyProvider,
                     new ObjectMapper()
             );
 

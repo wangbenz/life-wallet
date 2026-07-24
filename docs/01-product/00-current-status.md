@@ -35,10 +35,11 @@ Owner: Human + Codex
 - 账户、Today 预览/确认、最近记录、反馈和清除 API 已被当前 H5 实际使用；规则版轻量解析与 DeepSeek 对话 Agent 各自承担明确流程。
 - 已新增 Flyway V1 数据库迁移，覆盖账户、记录、活动、维度汇总、两类反馈、Agent 会话和轮次；本地默认使用文件型 H2，生产目标为 MySQL 8.4。
 - H5 的账户、记录、反馈、导出和清除已接入后端；Agent 本轮最多携带 20 条必要记录字段。
+- DeepSeek 密钥已支持 AES-256-GCM 加密入库与启动加载；首次配置或轮换通过受限导入文件完成，数据库只保存密文，独立主密钥仍由服务器文件保管。
 
 ### 测试与部署
 
-- 后端 25 项迁移 / JDBC / Agent 测试、前端 14 项 API / 日历 /规则测试、TypeScript 和 Vite 生产构建通过。
+- 后端 29 项迁移 / JDBC / 密钥 / Agent 测试、前端 14 项 API / 日历 / 规则测试、TypeScript 和 Vite 生产构建通过。
 - 本版 H5、Spring Boot 后端和 MySQL 已部署到京东云测试环境，TCP `15173` 的页面与 `/api` 公网访问已验证；DeepSeek 密钥和 HTTPS 尚未配置。
 - 发布、验证和回滚见 `docs/03-delivery/02-operations.md`。
 

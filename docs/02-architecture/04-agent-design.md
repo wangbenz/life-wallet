@@ -46,6 +46,7 @@ H5 对话 + 必要记录快照
 - `AgentRuntime` 已实现最多 4 步的模型—Tool 循环，`AgentToolRegistry` 提供 1 个读 Tool 和 3 个待确认写 Tool。
 - `JdbcConversationStore` 已使用 `agent_conversation` / `agent_turn` 保存消息和 `clientTurnId` 幂等结果；H5 用安装级随机 `ownerKey` 隔离会话。
 - JDBC 已确认记录是当前事实源。H5 每轮只把最多 20 条必要记录快照交给 Agent；写 Tool 不直接持久化，用户确认后由受控记录 API 执行。
+- DeepSeek API Key 由启动组件从 `service_secret` 读取 AES-256-GCM 密文，并使用部署环境单独保管的主密钥解密到内存；非空导入文件只用于首次配置或主动轮换。
 
 下一步重点不是扩大 Tool 数量，而是用真实样例评估 Tool 选择、参数提取、边界拒答和写前确认。
 

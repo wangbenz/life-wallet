@@ -19,6 +19,7 @@ Life Wallet（人生账单）是一个 Agent First 的 AI 人生理解系统。�
 - Life Agent 对话页已接入 Spring Boot 自定义 Agent Runtime，通过 DeepSeek Tool Calling 查询记录，或生成等待用户确认的新增、修改、删除动作。
 - Today 的首次记录理解通过后端规则解析服务生成预览，确认后才写入数据库；Life Agent 对话使用真实 DeepSeek。
 - 后端已加入 Flyway 管理的 MySQL 8.4 持久化；账户、确认记录、反馈、Agent 会话和幂等结果均使用 JDBC。
+- DeepSeek 密钥支持首次从受限文件导入，使用独立主密钥以 AES-256-GCM 加密写入数据库，并在应用启动时解密加载到内存；密钥不进入前端、仓库或日志。
 
 当前 H5 包括聚焦式账户初始化、后端记录预览、确认保存、准确度反馈、数据库驱动的 Life 洞察 / 记录和精简 Me 页面。首次开户保存后直接进入 Today；预览确认区会主动进入视野并避开底部导航。成就、连续打卡、假趋势和无功能入口已退出首版。
 

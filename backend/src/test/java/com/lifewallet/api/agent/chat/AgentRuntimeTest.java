@@ -22,6 +22,8 @@ class AgentRuntimeTest {
             "https://api.deepseek.com",
             "",
             "",
+            "",
+            false,
             "deepseek-v4-flash",
             Duration.ofSeconds(1),
             Duration.ofSeconds(2),

@@ -12,6 +12,8 @@ life-wallet:
       base-url: http://127.0.0.1:1
       api-key: test-only
       api-key-file:
+      master-key-file:
+      secret-persistence-enabled: false
       model: test-model
       connect-timeout: 100ms
       read-timeout: 100ms

@@ -23,19 +23,28 @@ pnpm build
 
 ## 本地后端
 
-使用 JDK 21。先配置 DeepSeek 密钥，密钥不能写入 `application.yml`、前端 `.env` 或 Git：
+使用 JDK 21。DeepSeek 密钥默认加密保存在数据库中，启动时解密加载到内存。首次配置前生成独立主密钥，两个文件都不能写入 `application.yml`、前端 `.env` 或 Git：
 
 ```bash
-export DEEPSEEK_API_KEY='replace-with-a-rotated-key'
+openssl rand -base64 32 > /tmp/life-wallet-deepseek-master-key
+chmod 600 /tmp/life-wallet-deepseek-master-key
+read -s DEEPSEEK_API_KEY_VALUE
+printf '%s' "$DEEPSEEK_API_KEY_VALUE" > /tmp/life-wallet-deepseek-api-key
+unset DEEPSEEK_API_KEY_VALUE
+chmod 600 /tmp/life-wallet-deepseek-api-key
+export DEEPSEEK_MASTER_KEY_FILE=/tmp/life-wallet-deepseek-master-key
+export DEEPSEEK_API_KEY_FILE=/tmp/life-wallet-deepseek-api-key
 ```
 
-也可以把密钥放在只有服务账户可读的文件，通过路径注入：
+首次启动会执行 Flyway V2，把 API Key 使用 AES-256-GCM 加密写入 `service_secret`，再加载到进程内存。确认导入成功后清空一次性导入文件；后续启动只需要主密钥文件：
 
 ```bash
-export DEEPSEEK_API_KEY_FILE='/run/credentials/life-wallet.service/deepseek-api-key'
+: > /tmp/life-wallet-deepseek-api-key
 ```
 
-`DEEPSEEK_API_KEY` 优先于 `DEEPSEEK_API_KEY_FILE`。所谓“加密配置文件”不能解决应用最终必须解密的问题；生产环境应使用云 Secret Manager、systemd credentials 或权限为 `0600` 的挂载 secret 文件，由部署系统控制解密和权限。
+再次放入非空 API Key 并重启会轮换数据库密文。数据库只保存密文、随机 nonce 和算法标识；主密钥仍应使用云 Secret Manager、systemd credentials 或权限为 `0600` 的文件保管。主密钥丢失后现有密文无法恢复。
+
+不希望本地开发写数据库时，可以设置 `DEEPSEEK_SECRET_PERSISTENCE_ENABLED=false`，此时仍只从环境变量或受限文件加载到内存。
 
 启动与验证：
 
@@ -73,8 +82,10 @@ export DB_PASSWORD="$LIFE_WALLET_DB_PASSWORD"
 |---|---|---|
 | `DEEPSEEK_BASE_URL` | `https://api.deepseek.com` | DeepSeek 兼容 API 根地址 |
 | `DEEPSEEK_MODEL` | `deepseek-v4-flash` | Agent 模型 |
-| `DEEPSEEK_API_KEY` | 空 | 直接注入密钥 |
-| `DEEPSEEK_API_KEY_FILE` | 空 | 从受限文件读取密钥 |
+| `DEEPSEEK_API_KEY` | 空 | 首次配置或轮换时直接注入，优先于导入文件 |
+| `DEEPSEEK_API_KEY_FILE` | 空 | 首次配置或轮换时使用的受限导入文件 |
+| `DEEPSEEK_MASTER_KEY_FILE` | 空 | 解密数据库密文的 Base64 32 字节主密钥文件 |
+| `DEEPSEEK_SECRET_PERSISTENCE_ENABLED` | `true` | 是否启用 DeepSeek 密钥加密入库与启动加载 |
 | `DB_URL` | 本地文件型 H2 | JDBC 地址；部署环境设置为 MySQL |
 | `DB_USERNAME` | `sa` | 数据库用户 |
 | `DB_PASSWORD` | 空 | 数据库密码 |
@@ -96,7 +107,7 @@ VITE_AGENT_PROXY_TARGET=http://127.0.0.1:18081 pnpm dev
 - Nginx 配置：`deploy/nginx/life-wallet.conf`。
 - 当前已部署本版 `frontend/dist/`、Spring Boot 后端与测试数据库；Nginx `/api/` 反向代理到只监听本机的 `127.0.0.1:18080`。
 - 后端由 systemd 的 `life-wallet-api.service` 托管，MySQL 由 `/opt/life-wallet-test/compose.yml` 托管。测试机复用已缓存的 MySQL 8.0 镜像，Compose 默认仍为 MySQL 8.4，可通过服务器 `.env` 的 `MYSQL_IMAGE` 覆盖。
-- DeepSeek secret 文件当前为空，Agent 请求返回 `AGENT_NOT_CONFIGURED`；配置轮换后的密钥并重启服务后才能验证真实 Agent。HTTPS 仍未配置，不能保证手机麦克风能力。
+- DeepSeek 一次性导入文件当前为空，数据库中也没有可加载密钥，Agent 请求返回 `AGENT_NOT_CONFIGURED`；配置轮换后的密钥并重启服务后才能验证真实 Agent。HTTPS 仍未配置，不能保证手机麦克风能力。
 
 ## 发布
 
@@ -128,7 +139,19 @@ ssh jd "sudo ln -sfn /etc/nginx/sites-available/life-wallet /etc/nginx/sites-ena
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
-测试服务器使用 `deploy/test/compose.yml` 运行 MySQL，并使用 `deploy/test/life-wallet-api.service` 和系统 JRE 21 托管后端。服务器目录 `/opt/life-wallet-test/` 包含 Compose、后端 jar、权限为 `0600` 的数据库环境文件与 DeepSeek secret 文件；这些秘密不进入 Git。后端只监听 `127.0.0.1:18080`，由 Nginx `/api/` 代理。
+测试服务器使用 `deploy/test/compose.yml` 运行 MySQL，并使用 `deploy/test/life-wallet-api.service` 和系统 JRE 21 托管后端。服务器目录 `/opt/life-wallet-test/` 包含 Compose、后端 jar、权限为 `0600` 的数据库环境文件、DeepSeek 导入文件和加密主密钥文件；这些秘密不进入 Git。后端只监听 `127.0.0.1:18080`，由 Nginx `/api/` 代理。
+
+测试服务器首次配置或轮换 DeepSeek 密钥：
+
+```bash
+# 仅首次执行；不要覆盖已经用于加密数据库密文的主密钥。
+ssh jd "sudo sh -c 'umask 077; test -s /opt/life-wallet-test/secrets/deepseek-master-key || openssl rand -base64 32 > /opt/life-wallet-test/secrets/deepseek-master-key; chown life-wallet:life-wallet /opt/life-wallet-test/secrets/deepseek-master-key'"
+scp /secure/path/deepseek-api-key jd:/tmp/deepseek-api-key
+ssh jd "sudo install -o life-wallet -g life-wallet -m 0600 /tmp/deepseek-api-key /opt/life-wallet-test/secrets/deepseek-api-key && rm -f /tmp/deepseek-api-key"
+ssh jd "sudo systemctl restart life-wallet-api"
+# 日志确认已经加密写入数据库后，清空一次性导入文件，主密钥文件必须保留。
+ssh jd "sudo -u life-wallet sh -c ': > /opt/life-wallet-test/secrets/deepseek-api-key'"
+```
 
 后端更新后执行：
 

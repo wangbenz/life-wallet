@@ -24,7 +24,8 @@ class DatabaseMigrationTest {
             "record_feedback",
             "experience_feedback",
             "agent_conversation",
-            "agent_turn"
+            "agent_turn",
+            "service_secret"
     );
 
     @Autowired
@@ -43,6 +44,11 @@ class DatabaseMigrationTest {
                 Integer.class
         );
         assertThat(successfulMigrations).isEqualTo(1);
+        Integer secretMigration = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM flyway_schema_history WHERE version = '2' AND success = TRUE",
+                Integer.class
+        );
+        assertThat(secretMigration).isEqualTo(1);
     }
 
     @Test

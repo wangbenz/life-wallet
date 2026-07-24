@@ -2,7 +2,7 @@
 
 ## Project Context
 
-Life Wallet 是 Agent First 的人生理解产品。当前使用独立 H5 Mock 验证“自然语言记录 → AI 理解 → 用户确认 → 人生支出反馈”，暂不开发完整微信小程序。
+Life Wallet 是 Agent First 的人生理解产品。当前使用独立 H5 Mock 验证“自然语言记录 → AI 理解 → 用户确认 → 已记录时长反馈”，暂不开发完整微信小程序。
 
 ## Required Reading
 

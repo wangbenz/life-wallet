@@ -2,14 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createMockAnalysis, summarizeDimensions } from './analysis.ts';
 
-test('人生币按照 24 小时等于 1 元换算', () => {
+test('维度汇总直接保留用户能理解的分钟数', () => {
   const summary = summarizeDimensions([
     { title: '工作', durationMinutes: 480, dimension: '创造', domain: '工作', topic: '工作', estimated: false },
     { title: '学习', durationMinutes: 40, dimension: '成长', domain: '学习', topic: '学习', estimated: false },
   ]);
 
-  assert.equal(summary[0].lifeCoinAmount.toFixed(2), '0.33');
-  assert.equal(summary[1].lifeCoinAmount.toFixed(2), '0.03');
+  assert.deepEqual(summary, [
+    { dimension: '创造', durationMinutes: 480 },
+    { dimension: '成长', durationMinutes: 40 },
+  ]);
 });
 
 test('Mock 根据自然语言识别多个生活维度和状态', () => {
@@ -27,4 +29,12 @@ test('没有时长时明确标记为估算', () => {
   assert.equal(result.activities[0].dimension, '关系');
   assert.equal(result.activities[0].estimated, true);
   assert.equal(result.needsConfirmation, true);
+});
+
+test('多个活动分别使用离自己最近的时长', () => {
+  const result = createMockAnalysis('2026-07-24', '晚上跑步 40 分钟，上午工作 2 小时，今天有点疲惫');
+
+  assert.deepEqual(result.activities.map((activity) => activity.durationMinutes), [120, 40]);
+  assert.deepEqual(result.activities.map((activity) => activity.sourceText), ['上午工作 2 小时', '晚上跑步 40 分钟']);
+  assert.equal(result.needsConfirmation, false);
 });

@@ -2,7 +2,7 @@
 
 Status: In Review
 Stage: H5 Demo Coding / Agent Learning
-Last Updated: 2026-07-11
+Last Updated: 2026-07-24
 Owner: Human + Codex
 
 ## 0. 文档定位
@@ -46,12 +46,18 @@ IntentRecognizer
 
 做一个可运行、可测试的 H5 Life Agent Demo，让用户：
 
-1. 设置生日和预期寿命，看到人生余额。
+1. 设置生日和预期寿命，看到预计剩余天数。
 2. 在 Today 页用自然语言记录生活。
 3. 由 Agent 判断这是普通聊天、记录、修改还是查询。
 4. 必要时调用业务 Tool，生成 Activity 与今日人生账单。
 5. 在一次对话中继续追问、确认或查看结果。
 6. 对结果提交“准确 / 一般 / 不准”反馈。
+
+当前 H5 Mock 的对话上下文还需要满足三个界面约束：
+
+- 从 Today 或 Life 历史进入时保留来源页面，关闭对话后返回原处。
+- 有目标记录时，快捷问题和输入提示使用“这条记录”，不错误指向“今天”。
+- 写操作继续展示目标、旧值、新值和影响范围，确认后才更新本地记录。
 
 第一阶段只验证两个闭环：
 
@@ -105,7 +111,7 @@ Agent 只能通过 Tool 调用业务能力；Tool 适配业务 Service，业务 
 | `LifeAccount` | birthday, expectedLifeYears, remainingLifeDays | 用户的人生账户 |
 | `LifeRecord` | recordId, lifeDate, originalContent, status | 一次生活记录，记录时间不等于生活发生日期 |
 | `Activity` | title, durationMinutes, dimension, domain, topic, estimated | 可回看、有意义的生活片段 |
-| `DimensionSummary` | dimension, durationMinutes, lifeCoinAmount | 某一天按 Life Dimension 聚合的支出 |
+| `DimensionSummary` | dimension, durationMinutes | 某一天按 Life Dimension 聚合的已记录时长 |
 | `Insight` | summary, evidenceRecordIds | 基于记录生成的温和理解；第一阶段仅做今日总结 |
 | `Feedback` | recordId, accuracy, comment | 用户对 Agent 结果的校准信号 |
 
@@ -225,7 +231,7 @@ public interface LifeTool<I, O> {
 
 | Tool | 类型 | 用途 | 是否需要确认 |
 |---|---|---|---|
-| `get_life_account` | 读 | 获取人生余额与账户设置 | 否 |
+| `get_life_account` | 读 | 获取剩余天数估算与账户设置 | 否 |
 | `get_today_record` | 读 | 获取某个生活日的最新记录 | 否 |
 | `list_recent_records` | 读 | 获取最近记录，支持轻量复盘 | 否 |
 | `create_life_record` | 写 | 保存原文并生成 Activity / 汇总 / 总结 | 用户明确说“记录/记下”时不再二次确认；推断写入时需要 |

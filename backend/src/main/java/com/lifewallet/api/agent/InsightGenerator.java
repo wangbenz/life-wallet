@@ -19,7 +19,7 @@ public class InsightGenerator {
         String state = containsAny(originalContent, "累", "疲惫", "焦虑", "低落")
                 ? "，也留意到了你今天有些疲惫"
                 : "";
-        return "今天这一元人生主要投入在" + dimensions + "上" + state + "。这是基于当前记录的初步理解。";
+        return "今天记录的片段主要集中在" + dimensions + "上" + state + "。这是基于当前记录的初步理解。";
     }
 
     private boolean containsAny(String content, String... keywords) {

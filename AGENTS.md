@@ -16,7 +16,7 @@ Life Wallet 是 Agent First 的人生理解产品。当前阶段是独立 H5 Moc
 再按任务读取一份或少量相关事实源：
 
 - 产品边界：`docs/01-product/03-product-definition.md`
-- Activity / 分类 / 人生币：`docs/01-product/08-life-ontology.md`
+- Activity / 分类 / 时间单位：`docs/01-product/08-life-ontology.md`
 - 架构：`docs/02-architecture/01-technical-architecture.md`
 - API：`docs/02-architecture/03-api-design.md`
 - Agent：`docs/02-architecture/04-agent-design.md`

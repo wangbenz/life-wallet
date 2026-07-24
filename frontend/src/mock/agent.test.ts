@@ -47,6 +47,15 @@ test('Agent 查询只返回真实存在的今天记录', () => {
   assert.deepEqual(intent.recordIds, [1]);
 });
 
+test('Agent 从历史卡片进入时只返回当前目标记录', () => {
+  const anotherRecord = { ...record, recordId: 2, lifeDate: '2026-07-14' };
+  const intent = resolveMockAgentIntent('查看这条记录', [record, anotherRecord], '2026-07-15', 2);
+
+  assert.equal(intent.kind, 'list');
+  if (intent.kind !== 'list') return;
+  assert.deepEqual(intent.recordIds, [2]);
+});
+
 test('Agent 能把自然陈述识别为待确认的新记录', () => {
   const intent = resolveMockAgentIntent('今天上班 4 小时', [], '2026-07-15');
 

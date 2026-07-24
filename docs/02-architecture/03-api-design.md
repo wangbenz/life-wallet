@@ -90,8 +90,7 @@ Milestone 3 的最小保存响应已被 Milestone 4 的解析响应替代。当�
   "dimensionSummary": [
     {
       "dimension": "创造",
-      "durationMinutes": 420,
-      "lifeCoinAmount": 0.29
+      "durationMinutes": 420
     }
   ],
   "needsConfirmation": true

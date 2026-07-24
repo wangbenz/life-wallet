@@ -14,6 +14,7 @@ import {
   Info,
   MessageCircleHeart,
   MessageCircleQuestion,
+  MoreHorizontal,
   NotebookTabs,
   PencilLine,
   Settings2,
@@ -26,7 +27,7 @@ import {
   createElement as createLucideElement,
   type IconNode,
 } from 'lucide';
-import { LIFE_MINUTES_PER_COIN, summarizeDimensions } from './mock/analysis.ts';
+import { summarizeDimensions } from './mock/analysis.ts';
 import { resolveMockAgentIntent } from './mock/agent.ts';
 import { getCalendarMonth, getYearPageStart, parseIsoDate, toIsoDate } from './calendar.ts';
 import {
@@ -54,7 +55,7 @@ type Tab = 'today' | 'life' | 'me';
 type LifeView = 'insights' | 'records';
 type CalendarTarget = 'record' | 'birthday';
 type CalendarView = 'days' | 'months' | 'years';
-type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'agent' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron' | 'insights' | 'records' | 'settings' | 'wallet';
+type IconName = 'back' | 'home' | 'life' | 'user' | 'info' | 'agent' | 'send' | 'calendar' | 'edit' | 'shield' | 'database' | 'help' | 'download' | 'trash' | 'check' | 'sparkles' | 'clock' | 'heart' | 'chevron' | 'insights' | 'records' | 'settings' | 'wallet' | 'more';
 type AgentMessage = { id: number; role: 'agent' | 'user'; content: string; recordIds?: number[] };
 type AgentPendingAction =
   | { type: 'create-record'; preview: RecordPreview }
@@ -68,6 +69,8 @@ const appRoot = app;
 let activeTab: Tab = 'today';
 let activeLifeView: LifeView = 'insights';
 let isAgentOpen = false;
+let isAccountOnboarding = false;
+let agentOriginTab: Tab = 'today';
 let account: Account | null = null;
 let recentRecords: TodayRecord[] = [];
 let recordFeedback: RecordFeedback[] = [];
@@ -75,6 +78,7 @@ let generalFeedback: GeneralFeedback[] = [];
 let recordPreview: RecordPreview | null = null;
 let editingRecordId: number | null = null;
 let pendingDeleteRecordId: number | null = null;
+let openRecordMenuId: number | null = null;
 let expandedRecordId: number | null = null;
 let isAnalyzingRecord = false;
 let isWorldviewExpanded = false;
@@ -84,6 +88,7 @@ let isAccountDirty = false;
 let formMessage = '';
 let recordMessage = '';
 let feedbackMessage = '';
+let isFeedbackExpanded = false;
 let recordDraft = '';
 let recordLifeDate = todayValue();
 let accountBirthdayDraft: string | null = null;
@@ -101,12 +106,13 @@ let agentMessages: AgentMessage[] = [
 ];
 
 function render() {
+  const isFocusedFlow = isAgentOpen || isAccountOnboarding || (!account && activeTab === 'today');
   appRoot.innerHTML = `
-    <main class="app-shell${isAgentOpen ? ' agent-shell' : ''}">
+    <main class="app-shell${isAgentOpen ? ' agent-shell' : ''}${isAccountOnboarding ? ' onboarding-flow-shell' : ''}">
       <div class="content-scroll">
-        ${isLoading ? renderLoading() : (isAgentOpen ? renderAgentScreen() : `${renderToday()}${renderLife()}${renderMe()}`)}
+        ${isLoading ? renderLoading() : (isAgentOpen ? renderAgentScreen() : isAccountOnboarding ? renderAccountOnboarding() : `${renderToday()}${renderLife()}${renderMe()}`)}
       </div>
-      ${isAgentOpen ? '' : `<nav class="tab-bar" aria-label="主导航">
+      ${isFocusedFlow ? '' : `<nav class="tab-bar" aria-label="主导航">
         ${renderTabButton('today', 'home', '今天')}
         ${renderTabButton('life', 'life', '人生')}
         ${renderTabButton('me', 'user', '我的')}
@@ -145,24 +151,30 @@ function renderToday() {
       <section class="life-balance-strip">
         <div class="balance-main">
           <span class="balance-mark">${renderIcon('life')}</span>
-          <div><p>人生余额</p><strong>${formatNumber(account.remainingLifeDays)}<em> 元</em></strong></div>
-          <button class="icon-button" type="button" data-worldview-toggle aria-expanded="${isWorldviewExpanded}" aria-label="了解人生余额">${renderIcon('info')}</button>
+          <div><p>预计剩余</p><strong>${formatNumber(account.remainingLifeDays)}<em> 天</em></strong></div>
+          <button class="icon-button" type="button" data-worldview-toggle aria-expanded="${isWorldviewExpanded}" aria-label="了解剩余天数估算">${renderIcon('info')}</button>
         </div>
-        <div class="daily-cost"><span>${renderIcon('check')}</span><p>今天会花掉<strong>1 元人生</strong></p></div>
-        ${isWorldviewExpanded ? '<p class="worldview-explanation">1 天 = 1 元人生，24 小时共同组成这 1 元。记录不是为了补齐每一分钟，而是帮助你看见那些值得回看的生活片段。</p>' : ''}
+        <div class="daily-cost"><span>${renderIcon('clock')}</span><p>今天拥有<strong>24 小时</strong></p></div>
+        ${isWorldviewExpanded ? '<p class="worldview-explanation">剩余天数根据出生日期和预期寿命估算，仅作为时间参考。记录不是为了补齐每一分钟，而是帮助你看见那些值得回看的生活片段。</p>' : ''}
       </section>
 
       <section class="record-hero">
         <div class="record-hero-copy">
-          <h1>${dayRecords.length > 0 ? '这一元，还有哪些片段值得记住？' : '今天这一元，哪些片段值得记住？'}</h1>
-          <p>像发消息一样告诉我，不用分类。</p>
+          <h1>${dayRecords.length > 0 ? '今天，还有哪些片段值得记住？' : '今天，哪些片段值得记住？'}</h1>
+          <p>写下一段生活，我会整理出活动、时长和感受；确认后会进入你的人生洞察。</p>
         </div>
         ${renderComposer()}
         <div class="quick-record" aria-label="表达提示">
-          <button type="button" data-quick-prompt="今天主要做了">${renderIcon('sparkles')}今天主要做了…</button>
-          <button type="button" data-quick-prompt="最花时间的是">${renderIcon('clock')}最花时间的是…</button>
-          <button type="button" data-quick-prompt="今天让我感觉">${renderIcon('heart')}今天让我感觉…</button>
+          <button type="button" data-quick-prompt="上午开会 2 小时，下午专注写方案 3 小时">${renderIcon('sparkles')}工作片段示例</button>
+          <button type="button" data-quick-prompt="晚上跑步 40 分钟，回家读书半小时">${renderIcon('clock')}生活片段示例</button>
+          <button type="button" data-quick-prompt="今天有点疲惫，但完成后很踏实">${renderIcon('heart')}感受表达示例</button>
         </div>
+        ${recentRecords.length === 0 ? `
+          <aside class="agent-guide">
+            <span aria-hidden="true">${renderIcon('agent')}</span>
+            <p>记录保存后，可以用右上角 Life Agent 查询或修改；任何写入都会先请你确认。</p>
+          </aside>
+        ` : ''}
       </section>
 
       ${renderSubmittedRecordBubble()}
@@ -179,9 +191,36 @@ function renderTodayOnboarding() {
       <section class="onboarding-card">
         <span class="onboarding-mark">1</span>
         <p class="eyebrow">欢迎来到 Life Wallet</p>
-        <h1>先看看你还拥有多少元人生</h1>
-        <p>设置出生日期和预期寿命后，我会生成你的人生余额。数据只保存在当前浏览器。</p>
-        <button type="button" class="primary-action" data-tab="me">创建人生账户</button>
+        <h1>把每天的生活，记成看得懂的人生账单</h1>
+        <p>用一句话记录工作、生活和感受，再确认系统整理出的内容，慢慢看见时间花去了哪里。数据仅保存在当前浏览器。</p>
+        <ol class="onboarding-value-path" aria-label="Life Wallet 使用流程">
+          <li>记录一句生活</li>
+          <li>确认整理结果</li>
+          <li>看见长期变化</li>
+        </ol>
+        <button type="button" class="primary-action" data-start-account>估算剩余天数</button>
+      </section>
+    </section>
+  `;
+}
+
+function renderAccountOnboarding() {
+  const birthday = accountBirthdayDraft ?? '';
+  const expectedLifeYears = accountExpectedLifeYearsDraft ?? 80;
+  return `
+    <section class="screen account-onboarding-screen">
+      <header class="focused-flow-header">
+        <button type="button" data-cancel-onboarding aria-label="返回欢迎页">${renderIcon('back')}</button>
+        <span>设置时间估算</span>
+      </header>
+      <section class="account-onboarding-copy">
+        <span class="onboarding-mark">1</span>
+        <p class="eyebrow">以天为时间尺度</p>
+        <h1>看看你预计还拥有多少天</h1>
+        <p>生日和预期寿命只用于估算剩余天数，之后都可以修改。当前 Demo 不联网，数据仅保存在这个浏览器。</p>
+      </section>
+      <section class="settings-section account-settings settings-group onboarding-account-card">
+        ${renderAccountForm(birthday, expectedLifeYears, true)}
       </section>
     </section>
   `;
@@ -202,30 +241,35 @@ function renderAgentMessage(message: string) {
 }
 
 function renderRecordPreview() {
-  if (!recordPreview) return '';
-  const recordedMinutes = recordPreview.dimensionSummary.reduce((sum, item) => sum + item.durationMinutes, 0);
+  const preview = recordPreview;
+  if (!preview) return '';
+  const recordedMinutes = preview.dimensionSummary.reduce((sum, item) => sum + item.durationMinutes, 0);
+  const sourcePhrases = splitSourcePhrases(preview.content);
+  const mayHaveOmissions = sourcePhrases.length > preview.activities.length;
 
   return `
-    <section class="record-preview">
+    <section class="record-preview" data-record-preview tabindex="-1">
       <div class="card-heading">
         <div><p class="eyebrow">AI 理解预览</p><h2>请确认这段理解</h2></div>
-        <span>${formatLifeDate(recordPreview.lifeDate)}</span>
+        <span>${formatLifeDate(preview.lifeDate)}</span>
       </div>
       <div class="preview-activities">
-        ${recordPreview.activities.map((activity, index) => `
+        ${preview.activities.map((activity, index) => `
           <article>
             <span>${escapeHtml(activity.dimension)} · ${escapeHtml(activity.domain)}${activity.estimated ? ' · 估算' : ''}</span>
+            <p class="activity-source"><span>来自原文</span>“${escapeHtml(activity.sourceText ?? sourcePhrases[index] ?? preview.content)}”</p>
             <label>活动<input data-preview-title="${index}" value="${escapeHtml(activity.title)}" aria-label="第 ${index + 1} 条活动名称" /></label>
             <label>时长<span class="duration-input"><input data-preview-duration="${index}" type="number" min="1" max="1440" value="${activity.durationMinutes}" aria-label="第 ${index + 1} 条活动时长" /><em>分钟</em></span></label>
           </article>
         `).join('')}
       </div>
-      ${recordPreview.stateDescription ? `<p class="state-line"><strong>你提到：</strong>${escapeHtml(recordPreview.stateDescription)}</p>` : ''}
+      ${mayHaveOmissions ? `<p class="preview-warning">${renderIcon('info')} 原文有 ${sourcePhrases.length} 个表达片段，当前整理出 ${preview.activities.length} 项。请检查是否有内容被遗漏。</p>` : ''}
+      ${preview.stateDescription ? `<p class="state-line"><strong>你提到：</strong>${escapeHtml(preview.stateDescription)}</p>` : ''}
       <div class="preview-summary">
         <span>AI 今日总结</span>
-        <p>${escapeHtml(recordPreview.summary)}</p>
+        <p>${escapeHtml(preview.summary)}</p>
       </div>
-      <p class="coin-note">这些片段共约 <strong>${formatCoin(recordedMinutes)}</strong> 元人生；不要求补齐全天。</p>
+      <p class="duration-note">这些片段共记录 <strong>${formatDuration(recordedMinutes)}</strong>；不要求补齐全天。</p>
       <div class="preview-actions">
         <p>以上理解是否准确？</p>
         <button type="button" class="secondary-action" data-preview-action="modify">修改原文</button>
@@ -233,6 +277,13 @@ function renderRecordPreview() {
       </div>
     </section>
   `;
+}
+
+function splitSourcePhrases(content: string) {
+  return content
+    .split(/[，。；;、\n]+/)
+    .map((phrase) => phrase.trim())
+    .filter((phrase) => phrase.length >= 2);
 }
 
 function renderDayRecords(records: TodayRecord[]) {
@@ -267,12 +318,12 @@ function renderSavedRecord(record: TodayRecord) {
         <div><p class="eyebrow">我理解的是</p><p>${escapeHtml(record.summary)}</p></div>
       </div>
       <div class="dimension-list">
-        ${record.dimensionSummary.map((item) => `<div><span>${escapeHtml(item.dimension)} · ${formatDuration(item.durationMinutes)}</span><strong>${item.lifeCoinAmount.toFixed(2)} 元</strong></div>`).join('')}
+        ${record.dimensionSummary.map((item) => `<div><span>${escapeHtml(item.dimension)}</span><strong>${formatDuration(item.durationMinutes)}</strong></div>`).join('')}
       </div>
       <div class="activity-list">
         ${record.activities.map((activity) => `<article><div><strong>${escapeHtml(activity.title)}</strong><span>${escapeHtml(activity.dimension)} · ${escapeHtml(activity.domain)}</span></div><p>${formatDuration(activity.durationMinutes)}${activity.estimated ? ' · 估算' : ''}</p></article>`).join('')}
       </div>
-      <p class="coin-note">本次记录约覆盖 <strong>${formatCoin(totalMinutes)}</strong> 元人生。</p>
+      <p class="duration-note">本次共记录 <strong>${formatDuration(totalMinutes)}</strong>。</p>
       <div class="record-feedback">
         <p>${feedback ? '感谢反馈，这会帮助我们改进理解方式。' : '这个理解像你的一天吗？'}</p>
         <div>
@@ -294,7 +345,7 @@ function renderComposer() {
     <form class="composer" id="record-form">
       <label class="record-date"><span>记录日期</span><input name="lifeDate" type="hidden" value="${recordLifeDate}" /><button class="date-trigger compact" type="button" data-open-calendar="record" aria-label="选择记录日期，当前为 ${formatCalendarTriggerDate(recordLifeDate)}">${renderIcon('calendar')}<span>${formatCalendarTriggerDate(recordLifeDate)}</span>${renderIcon('chevron')}</button></label>
       <textarea name="content" maxlength="2000" rows="4" placeholder="例如：下午专注改了 3 小时 bug，晚上跑步 40 分钟…" required>${escapeHtml(recordDraft)}</textarea>
-      <button type="submit" aria-label="交给 AI 整理" ${isAnalyzingRecord ? 'disabled' : ''}>${renderIcon('sparkles')}<span>${isAnalyzingRecord ? '正在整理…' : '交给 AI 整理'}</span></button>
+      <button type="submit" aria-label="整理这段记录" ${isAnalyzingRecord ? 'disabled' : ''}>${renderIcon('sparkles')}<span>${isAnalyzingRecord ? '正在整理…' : '整理这段记录'}</span></button>
       <p>${escapeHtml(recordMessage)}</p>
     </form>
   `;
@@ -332,7 +383,7 @@ function renderLifeInsights() {
   const progress = Math.min(100, (recordDates.length / 7) * 100);
   const top = dimensions[0];
   const second = dimensions[1];
-  const recordedCoin = totalMinutes / LIFE_MINUTES_PER_COIN;
+  const isEarlySample = recordDates.length < 3;
 
   return `
     <section class="life-view-panel">
@@ -341,7 +392,7 @@ function renderLifeInsights() {
         <div class="life-metric-grid">
           <div><span>记录日</span><strong>${recordDates.length}<em>天</em></strong><small>不要求连续</small></div>
           <div><span>生活片段</span><strong>${selectedRecords.length}<em>条</em></strong><small>仅已确认</small></div>
-          <div><span>覆盖人生</span><strong>${recordedCoin.toFixed(2)}<em>元</em></strong><small>${formatDuration(totalMinutes)}</small></div>
+          <div><span>已记录时长</span><strong class="duration-value">${formatDuration(totalMinutes)}</strong><small>仅统计片段</small></div>
         </div>
         <div class="review-progress">
           <div><span>第一份阶段回看</span><strong>${recordDates.length >= 7 ? '已达到样本量' : `还差 ${7 - recordDates.length} 个记录日`}</strong></div>
@@ -366,7 +417,7 @@ function renderLifeInsights() {
         <div class="distribution-list">
           ${dimensions.map((item) => {
             const percent = totalMinutes > 0 ? Math.round((item.durationMinutes / totalMinutes) * 100) : 0;
-            return `<div><header><span>${escapeHtml(item.dimension)}</span><strong>${percent}%</strong></header><div><i style="width:${percent}%"></i></div><small>${formatDuration(item.durationMinutes)} · ${item.lifeCoinAmount.toFixed(2)} 元</small></div>`;
+            return `<div><header><span>${escapeHtml(item.dimension)}</span><strong>${isEarlySample ? formatDuration(item.durationMinutes) : `${percent}%`}</strong></header><div><i style="width:${percent}%"></i></div><small>${formatDuration(item.durationMinutes)} · 仅统计已确认片段</small></div>`;
           }).join('')}
         </div>
         <p class="data-scope-note">${renderIcon('info')} 这里只计算你确认过的记录，不补全未记录时间。</p>
@@ -399,11 +450,16 @@ function renderLifeRecords() {
             <p class="history-summary">${escapeHtml(record.summary)}</p>
             <div class="history-tags">${record.dimensionSummary.map((item) => `<span>${escapeHtml(item.dimension)} · ${formatDuration(item.durationMinutes)}</span>`).join('')}</div>
             <footer>
-              <button type="button" data-agent-record="${record.recordId}">${renderIcon('agent')} Agent 修改</button>
-              <button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button>
-              ${pendingDeleteRecordId === record.recordId
-                ? `<button type="button" class="danger" data-delete-record="${record.recordId}" data-delete-action="confirm">确认删除</button><button type="button" data-delete-record="${record.recordId}" data-delete-action="cancel">取消</button>`
-                : `<button type="button" class="danger-text" data-delete-record="${record.recordId}" data-delete-action="ask">${renderIcon('trash')} 删除</button>`}
+              <button type="button" class="history-agent-action" data-agent-record="${record.recordId}">${renderIcon('agent')} 用 Agent 修改</button>
+              <div class="record-more">
+                <button type="button" data-record-menu="${record.recordId}" aria-expanded="${openRecordMenuId === record.recordId}" aria-label="更多记录操作">${renderIcon('more')} 更多</button>
+                ${openRecordMenuId === record.recordId ? `<div class="record-more-menu">
+                  <button type="button" data-edit-record="${record.recordId}">${renderIcon('edit')} 手动修正</button>
+                  ${pendingDeleteRecordId === record.recordId
+                    ? `<p>确定删除这条记录？</p><button type="button" class="danger" data-delete-record="${record.recordId}" data-delete-action="confirm">确认删除</button><button type="button" data-delete-record="${record.recordId}" data-delete-action="cancel">取消</button>`
+                    : `<button type="button" class="danger-text" data-delete-record="${record.recordId}" data-delete-action="ask">${renderIcon('trash')} 删除记录</button>`}
+                </div>` : ''}
+              </div>
             </footer>
           </article>
         `).join('')}
@@ -418,7 +474,7 @@ function renderEmptyState(title: string, description: string, action: string, ta
 
 function renderMe() {
   if (activeTab !== 'me') return '';
-  const birthday = accountBirthdayDraft ?? account?.birthday ?? '1995-01-01';
+  const birthday = accountBirthdayDraft ?? account?.birthday ?? '';
   const expectedLifeYears = accountExpectedLifeYearsDraft ?? account?.expectedLifeYears ?? 80;
   const recordDays = new Set(recentRecords.map((record) => record.lifeDate)).size;
   const recordedMinutes = recentRecords.flatMap((record) => record.activities).reduce((sum, activity) => sum + activity.durationMinutes, 0);
@@ -433,23 +489,18 @@ function renderMe() {
       </header>
 
       <section class="me-profile-card">
-        <div class="profile-identity"><span class="profile-symbol">${renderIcon('user')}</span><div><p class="eyebrow">我的人生账户</p><h2>${account ? `${formatNumber(account.remainingLifeDays)} 元人生` : '还没有创建账户'}</h2><span>${account ? `按 ${expectedLifeYears} 岁预期寿命估算` : '创建后生成你的人生余额'}</span></div></div>
+        <div class="profile-identity"><span class="profile-symbol">${renderIcon('user')}</span><div><p class="eyebrow">我的时间估算</p><h2>${account ? `${formatNumber(account.remainingLifeDays)} 天` : '还没有设置时间估算'}</h2><span>${account ? `按 ${expectedLifeYears} 岁预期寿命估算` : '设置后显示预计剩余天数'}</span></div></div>
         <div class="local-status">${renderIcon('shield')} 仅保存在本机</div>
         <div class="profile-metrics">
           <div><span>记录日</span><strong>${recordDays}<em>天</em></strong></div>
           <div><span>生活记录</span><strong>${recentRecords.length}<em>条</em></strong></div>
-          <div><span>覆盖人生</span><strong>${formatCoin(recordedMinutes)}<em>元</em></strong></div>
+          <div><span>已记录时长</span><strong class="duration-value">${formatDuration(recordedMinutes)}</strong></div>
         </div>
       </section>
 
       <section class="settings-section account-settings settings-group">
-        <div class="settings-group-heading"><span class="settings-icon mint">${renderIcon('wallet')}</span><div><p class="eyebrow">账户设置</p><h2>${account ? '调整余额依据' : '创建人生账户'}</h2><small>修改后会重新估算人生余额</small></div></div>
-        <form class="account-form" id="account-form">
-          <label><span>${renderIcon('calendar')} 出生日期</span><input name="birthday" type="hidden" value="${birthday}" /><button class="date-trigger" type="button" data-open-calendar="birthday" aria-label="选择出生日期，当前为 ${formatCalendarTriggerDate(birthday)}"><span>${formatCalendarTriggerDate(birthday)}</span>${renderIcon('chevron')}</button></label>
-          <label><span>${renderIcon('life')} 预期寿命</span><span class="number-field"><input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" required /><em>岁</em></span></label>
-          <button class="primary-action account-save" type="submit" ${account && !isAccountDirty ? 'disabled' : ''}>${account ? '保存修改' : '生成我的人生余额'}</button>
-          <p class="form-message">${escapeHtml(formMessage)}</p>
-        </form>
+        <div class="settings-group-heading"><span class="settings-icon mint">${renderIcon('wallet')}</span><div><p class="eyebrow">时间估算</p><h2>${account ? '调整估算依据' : '设置剩余天数'}</h2><small>修改后会重新估算剩余天数</small></div></div>
+        ${renderAccountForm(birthday, expectedLifeYears, false)}
       </section>
 
       <details class="settings-section privacy-card settings-group">
@@ -460,24 +511,42 @@ function renderMe() {
       <section class="settings-section data-card settings-group">
         <div class="settings-group-heading"><span class="settings-icon blue">${renderIcon('database')}</span><div><p class="eyebrow">数据管理</p><h2>${recordDays} 个记录日 · ${recentRecords.length} 条记录</h2><small>先备份，再进行清理</small></div></div>
         <div class="data-actions settings-action-list">
-          <button type="button" class="settings-action" data-export-data><span class="action-symbol">${renderIcon('download')}</span><span><strong>导出 JSON 备份</strong><small>保存账户、记录与本地反馈</small></span>${renderIcon('chevron')}</button>
+          <button type="button" class="settings-action" data-export-data><span class="action-symbol">${renderIcon('download')}</span><span><strong>导出备份文件</strong><small>保存账户、记录与本地反馈</small></span>${renderIcon('chevron')}</button>
           ${isClearDataConfirming
             ? '<div class="danger-confirm"><p>清除后无法恢复，确定删除本机全部数据吗？</p><div><button type="button" class="danger" data-clear-data="confirm">确认清除</button><button type="button" data-clear-data="cancel">取消</button></div></div>'
             : `<button type="button" class="settings-action danger-text" data-clear-data="ask"><span class="action-symbol danger">${renderIcon('trash')}</span><span><strong>清除本机数据</strong><small>删除账户、记录与反馈</small></span>${renderIcon('chevron')}</button>`}
         </div>
       </section>
 
-      <section class="settings-section feedback-card settings-group">
-        <div class="settings-group-heading"><span class="settings-icon peach">${renderIcon('help')}</span><div><p class="eyebrow">帮助与反馈</p><h2>哪里让你感到困惑？</h2><small>反馈只保存在当前浏览器</small></div></div>
+      <details class="settings-section feedback-card settings-group" ${isFeedbackExpanded ? 'open' : ''}>
+        <summary>
+          <span class="settings-icon peach">${renderIcon('help')}</span>
+          <span class="summary-copy"><small>帮助与反馈</small><strong>问题与建议</strong><em>展开填写并复制反馈</em></span>
+          ${renderIcon('chevron')}
+        </summary>
         <form id="general-feedback-form">
-          <textarea name="feedback" rows="4" maxlength="1000" placeholder="例如：我看不懂人生币，或者我更想看到……" required></textarea>
-          <button type="submit" class="primary-action">${renderIcon('send')} 提交本地反馈</button>
+          <textarea name="feedback" rows="3" maxlength="1000" placeholder="哪里让你困惑，或希望增加什么？" required></textarea>
+          <p class="feedback-boundary">当前 Demo 不联网提交，团队不会自动收到。</p>
+          <button type="submit" class="primary-action">${renderIcon('send')} 保存并复制反馈</button>
           <p class="form-message">${escapeHtml(feedbackMessage)}${generalFeedback.length > 0 && !feedbackMessage ? `已保存 ${generalFeedback.length} 条反馈。` : ''}</p>
         </form>
-      </section>
+      </details>
 
       <p class="me-version">Life Wallet · H5 Demo v0.3</p>
     </section>
+  `;
+}
+
+function renderAccountForm(birthday: string, expectedLifeYears: number, isOnboarding: boolean) {
+  const birthdayLabel = birthday ? formatCalendarTriggerDate(birthday) : '请选择出生日期';
+  const isSaved = Boolean(account && !isAccountDirty && !isOnboarding);
+  return `
+    <form class="account-form" id="account-form">
+      <label><span>${renderIcon('calendar')} 出生日期</span><input name="birthday" type="hidden" value="${birthday}" /><button class="date-trigger${birthday ? '' : ' placeholder'}" type="button" data-open-calendar="birthday" aria-label="${birthday ? `选择出生日期，当前为 ${birthdayLabel}` : '选择出生日期'}"><span>${birthdayLabel}</span>${renderIcon('chevron')}</button></label>
+      <label><span>${renderIcon('life')} 预期寿命${isOnboarding ? '<small>可稍后修改</small>' : ''}</span><span class="number-field"><input name="expectedLifeYears" type="number" min="1" max="120" value="${expectedLifeYears}" required /><em>岁</em></span></label>
+      <button class="primary-action account-save" type="submit" ${!birthday || isSaved ? 'disabled' : ''}>${isSaved ? '设置已保存' : account ? '保存修改' : '生成剩余天数'}</button>
+      <p class="form-message">${escapeHtml(formMessage)}</p>
+    </form>
   `;
 }
 
@@ -485,7 +554,7 @@ function renderCalendarDialog() {
   if (!calendarTarget) return '';
   const selectedValue = calendarTarget === 'record'
     ? recordLifeDate
-    : (accountBirthdayDraft ?? account?.birthday ?? '1995-01-01');
+    : (accountBirthdayDraft ?? account?.birthday ?? '');
   const title = calendarTarget === 'record' ? '选择记录日期' : '选择出生日期';
   const periodTitle = calendarView === 'days'
     ? `${calendarYear}年 ${calendarMonth + 1}月`
@@ -545,10 +614,14 @@ function renderCalendarYears() {
 }
 
 function renderAgentScreen() {
+  const contextRecord = recentRecords.find((record) => record.recordId === agentContextRecordId);
+  const originLabel = tabLabel(agentOriginTab);
+  const contextActivity = contextRecord?.activities[0];
+  const contextNewMinutes = contextActivity ? Math.min(1440, contextActivity.durationMinutes + 30) : 60;
   return `
     <section class="screen agent-screen">
       <header class="agent-page-header">
-        <button type="button" data-close-agent aria-label="返回 Today">${renderIcon('back')}</button>
+        <button type="button" data-close-agent aria-label="返回${originLabel}">${renderIcon('back')}</button>
         <div class="agent-page-identity">
           <span>${renderIcon('agent')}</span>
           <div><h1>Life Agent</h1><p>本地 Mock · 只处理生活记录</p></div>
@@ -571,18 +644,28 @@ function renderAgentScreen() {
 
       ${agentPendingAction || isAgentThinking ? '' : `
         <div class="agent-suggestions" aria-label="对话示例">
-          <button type="button" data-agent-prompt="我今天记了什么？">我今天记了什么？</button>
-          <button type="button" data-agent-prompt="把今天的上班从 4 小时修改为 8 小时">修改今天的时长</button>
-          <button type="button" data-agent-prompt="记下今天散步 30 分钟">记下一段生活</button>
+          ${contextRecord && contextActivity ? `
+            <button type="button" data-agent-prompt="查看这条记录">查看这条记录</button>
+            <button type="button" data-agent-prompt="把这条记录的${escapeHtml(contextActivity.title)}改成${formatDuration(contextNewMinutes)}">修改这条记录</button>
+            <button type="button" data-agent-prompt="删除这条记录里的${escapeHtml(contextActivity.title)}">删除这条记录</button>
+          ` : `
+            <button type="button" data-agent-prompt="我今天记了什么？">我今天记了什么？</button>
+            <button type="button" data-agent-prompt="把今天的上班从 4 小时修改为 8 小时">修改今天的时长</button>
+            <button type="button" data-agent-prompt="记下今天散步 30 分钟">记下一段生活</button>
+          `}
         </div>
       `}
 
       <form class="agent-composer" id="agent-form">
-        <textarea name="message" rows="2" maxlength="2000" placeholder="例如：把今天的上班从 4 小时改成 8 小时…" aria-label="给 Life Agent 发消息" required>${escapeHtml(agentDraft)}</textarea>
+        <textarea name="message" rows="2" maxlength="2000" placeholder="${contextRecord ? '例如：把这条记录的工作改成 6 小时…' : '例如：把今天的上班从 4 小时改成 8 小时…'}" aria-label="给 Life Agent 发消息" required>${escapeHtml(agentDraft)}</textarea>
         <button type="submit" aria-label="发送给 Life Agent" ${isAgentThinking || agentPendingAction ? 'disabled' : ''}>${renderIcon('send')}</button>
       </form>
     </section>
   `;
+}
+
+function tabLabel(tab: Tab) {
+  return tab === 'today' ? '今天' : tab === 'life' ? '人生' : '我的';
 }
 
 function renderAgentRecordCards(recordIds: number[]) {
@@ -643,10 +726,25 @@ function bindEvents() {
   document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((button) => {
     button.addEventListener('click', () => {
       activeTab = button.dataset.tab as Tab;
+      openRecordMenuId = null;
+      pendingDeleteRecordId = null;
       formMessage = '';
       render();
       window.scrollTo(0, 0);
     });
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-start-account]')?.addEventListener('click', () => {
+    isAccountOnboarding = true;
+    formMessage = '';
+    render();
+    window.scrollTo(0, 0);
+  });
+
+  document.querySelector<HTMLButtonElement>('[data-cancel-onboarding]')?.addEventListener('click', () => {
+    isAccountOnboarding = false;
+    formMessage = '';
+    render();
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-life-view]').forEach((button) => {
@@ -767,6 +865,16 @@ function bindEvents() {
     button.addEventListener('click', () => editRecord(Number(button.dataset.editRecord)));
   });
 
+  document.querySelectorAll<HTMLButtonElement>('[data-record-menu]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const recordId = Number(button.dataset.recordMenu);
+      openRecordMenuId = openRecordMenuId === recordId ? null : recordId;
+      pendingDeleteRecordId = null;
+      render();
+      document.querySelector<HTMLButtonElement>(`[data-record-menu="${recordId}"]`)?.focus();
+    });
+  });
+
   document.querySelectorAll<HTMLButtonElement>('[data-delete-record]').forEach((button) => {
     button.addEventListener('click', () => void handleDeleteRecord(Number(button.dataset.deleteRecord), button.dataset.deleteAction ?? 'ask'));
   });
@@ -785,7 +893,7 @@ function bindEvents() {
       accountExpectedLifeYearsDraft = input.value === '' ? null : Number(input.value);
       isAccountDirty = true;
       const saveButton = document.querySelector<HTMLButtonElement>('.account-save');
-      if (saveButton) saveButton.disabled = false;
+      if (saveButton) saveButton.disabled = !accountBirthdayDraft;
     });
   });
 
@@ -798,6 +906,10 @@ function bindEvents() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget as HTMLFormElement);
     void submitGeneralFeedback(String(formData.get('feedback') ?? ''));
+  });
+
+  document.querySelector<HTMLDetailsElement>('.feedback-card')?.addEventListener('toggle', (event) => {
+    isFeedbackExpanded = (event.currentTarget as HTMLDetailsElement).open;
   });
 
   document.querySelector<HTMLTextAreaElement>('#agent-form textarea[name="message"]')?.addEventListener('input', (event) => {
@@ -829,7 +941,8 @@ function openCalendar(target: CalendarTarget) {
   syncVisibleDrafts();
   calendarTarget = target;
   calendarView = 'days';
-  const selected = parseIsoDate(target === 'record' ? recordLifeDate : (accountBirthdayDraft ?? account?.birthday ?? '1995-01-01'));
+  const neutralBirthdayView = `${new Date().getFullYear() - 30}-01-01`;
+  const selected = parseIsoDate(target === 'record' ? recordLifeDate : (accountBirthdayDraft ?? account?.birthday ?? neutralBirthdayView));
   calendarYear = selected.year;
   calendarMonth = selected.month;
   document.body.classList.add('calendar-open');
@@ -837,10 +950,11 @@ function openCalendar(target: CalendarTarget) {
 }
 
 function closeCalendar() {
+  const closingTarget = calendarTarget;
   calendarTarget = null;
   document.body.classList.remove('calendar-open');
   render();
-  window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`[data-open-calendar="${activeTab === 'me' ? 'birthday' : 'record'}"]`)?.focus());
+  window.requestAnimationFrame(() => document.querySelector<HTMLButtonElement>(`[data-open-calendar="${closingTarget ?? 'record'}"]`)?.focus());
 }
 
 function selectCalendarDate(value: string) {
@@ -884,7 +998,10 @@ function renderCalendarAndFocus() {
 }
 
 function openAgent(recordId: number | null = null) {
+  agentOriginTab = activeTab;
   isAgentOpen = true;
+  openRecordMenuId = null;
+  pendingDeleteRecordId = null;
   if (recordId && agentContextRecordId !== recordId) {
     const record = recentRecords.find((item) => item.recordId === recordId);
     if (record) {
@@ -919,7 +1036,7 @@ async function handleAgentMessage(message: string) {
       ...recentRecords.filter((record) => record.recordId !== agentContextRecordId),
     ]
     : recentRecords;
-  const intent = resolveMockAgentIntent(content, orderedRecords, todayValue());
+  const intent = resolveMockAgentIntent(content, orderedRecords, todayValue(), agentContextRecordId);
 
   if (intent.kind === 'create') {
     try {
@@ -1058,6 +1175,9 @@ async function analyzeRecord(content: string, lifeDate: string) {
   } finally {
     isAnalyzingRecord = false;
     render();
+    if (recordPreview) {
+      window.requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-record-preview]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
   }
 }
 
@@ -1117,6 +1237,7 @@ function editRecord(recordId: number) {
   recordDraft = record.content;
   recordPreview = null;
   recordMessage = '正在修正这条记录，重新发送并确认后会覆盖旧版本。';
+  openRecordMenuId = null;
   activeTab = 'today';
   render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1137,10 +1258,12 @@ async function handleDeleteRecord(recordId: number, action: string) {
   recentRecords = await deleteMockRecord(recordId);
   recordFeedback = recordFeedback.filter((item) => item.recordId !== recordId);
   pendingDeleteRecordId = null;
+  openRecordMenuId = null;
   render();
 }
 
 async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYears'>) {
+  const wasCreatingAccount = !account;
   formMessage = '正在保存...';
   render();
   try {
@@ -1148,7 +1271,14 @@ async function saveAccount(payload: Pick<Account, 'birthday' | 'expectedLifeYear
     accountBirthdayDraft = account.birthday;
     accountExpectedLifeYearsDraft = account.expectedLifeYears;
     isAccountDirty = false;
-    formMessage = '人生账户已保存，可以返回 Today 开始记录。';
+    if (wasCreatingAccount) {
+      isAccountOnboarding = false;
+      activeTab = 'today';
+      formMessage = '';
+      recordMessage = '时间估算已设置，从今天的一段生活开始吧。';
+    } else {
+      formMessage = '时间估算设置已保存。';
+    }
   } catch (error) {
     formMessage = error instanceof Error ? error.message : '保存失败，请稍后再试。';
   }
@@ -1188,22 +1318,50 @@ async function handleClearData(action: string) {
   recordDraft = '';
   isClearDataConfirming = false;
   isAccountDirty = false;
+  isFeedbackExpanded = false;
   accountBirthdayDraft = null;
   accountExpectedLifeYearsDraft = null;
+  activeTab = 'today';
+  isAccountOnboarding = false;
   formMessage = '本机中的 Life Wallet 数据已清除。';
   render();
 }
 
 async function submitGeneralFeedback(content: string) {
-  feedbackMessage = '正在保存...';
+  const normalizedContent = content.trim();
+  isFeedbackExpanded = true;
+  feedbackMessage = '正在保存并复制...';
   render();
   try {
-    generalFeedback = await saveMockGeneralFeedback(content);
-    feedbackMessage = '感谢反馈，内容已保存在当前浏览器。';
+    generalFeedback = await saveMockGeneralFeedback(normalizedContent);
+    const copied = await copyTextToClipboard(`Life Wallet 体验反馈\n${normalizedContent}`);
+    feedbackMessage = copied
+      ? '已保存在当前浏览器并复制，请粘贴给体验邀请人。'
+      : '已保存在当前浏览器；浏览器未允许复制，请手动复制后发送给体验邀请人。';
   } catch (error) {
     feedbackMessage = error instanceof Error ? error.message : '保存失败，请稍后再试。';
   }
   render();
+}
+
+async function copyTextToClipboard(content: string) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(content);
+      return true;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = content;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.append(textarea);
+    textarea.select();
+    const copied = document.execCommand('copy');
+    textarea.remove();
+    return copied;
+  } catch {
+    return false;
+  }
 }
 
 function renderIcon(name: IconName) {
@@ -1232,6 +1390,7 @@ function renderIcon(name: IconName) {
     records: NotebookTabs,
     settings: Settings2,
     wallet: WalletCards,
+    more: MoreHorizontal,
   };
 
   return createLucideElement(iconNodes[name], {
@@ -1247,12 +1406,9 @@ function formatNumber(value: number) {
 
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes} 分钟`;
-  const hours = minutes / 60;
-  return Number.isInteger(hours) ? `${hours} 小时` : `${hours.toFixed(1)} 小时`;
-}
-
-function formatCoin(minutes: number) {
-  return (minutes / LIFE_MINUTES_PER_COIN).toFixed(2);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes === 0 ? `${hours} 小时` : `${hours} 小时 ${remainingMinutes} 分钟`;
 }
 
 function formatLifeDate(value: string) {

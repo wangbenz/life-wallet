@@ -1,7 +1,5 @@
 package com.lifewallet.api.agent;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,10 +55,7 @@ public class LightweightLifeAgent implements LifeModelClient {
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .map(entry -> new DimensionSummary(
                         entry.getKey(),
-                        entry.getValue(),
-                        // 1 天 = 1 元人生，所以某维度支出 = 分钟数 / 1440。
-                        BigDecimal.valueOf(entry.getValue())
-                                .divide(BigDecimal.valueOf(1440), 2, RoundingMode.HALF_UP)
+                        entry.getValue()
                 ))
                 .toList();
     }

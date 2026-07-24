@@ -38,7 +38,7 @@ MySQL 持久化
 
 - 展示 Today / Life / Me 三个 Tab。
 - Me 页设置生日和预期寿命。
-- Today 页展示人生余额、Agent 对话、模拟理解、账单预览和确认保存。
+- Today 页展示剩余天数估算、Agent 对话、模拟理解、时间片段预览和确认保存。
 - Life 页展示概览、趋势、时间轴和成就原型。
 - Me 页展示小程序风格的账户、AI 设置和数据服务入口。
 - 前端 Mock 阶段的所有接口替身集中在 `frontend/src/mock/data.ts`。

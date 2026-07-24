@@ -29,7 +29,7 @@ const activityGroups = [
   { triggers: ['睡觉', '睡眠', '午休'], matches: ['睡眠', '休息', '午休'] },
 ];
 
-export function resolveMockAgentIntent(message: string, records: TodayRecord[], activeDate: string): MockAgentIntent {
+export function resolveMockAgentIntent(message: string, records: TodayRecord[], activeDate: string, contextRecordId: number | null = null): MockAgentIntent {
   const content = message.trim();
   if (!content) return { kind: 'help', message: '先告诉我你想查询、记录还是修改哪段生活。' };
 
@@ -77,16 +77,21 @@ export function resolveMockAgentIntent(message: string, records: TodayRecord[], 
     return { kind: 'create', content };
   }
 
-  if (/(记了什么|有哪些记录|查看记录|今天做了什么|最近的记录)/.test(content)) {
-    const scopedRecords = content.includes('今天')
-      ? records.filter((record) => record.lifeDate === activeDate)
-      : records.slice(0, 3);
+  if (/(记了什么|有哪些记录|查看记录|今天做了什么|最近的记录|这条记录)/.test(content)) {
+    const isContextQuery = content.includes('这条记录') && contextRecordId !== null;
+    const scopedRecords = isContextQuery
+      ? records.filter((record) => record.recordId === contextRecordId)
+      : content.includes('今天')
+        ? records.filter((record) => record.lifeDate === activeDate)
+        : records.slice(0, 3);
     if (scopedRecords.length === 0) {
       return { kind: 'list', message: content.includes('今天') ? '今天还没有已确认的记录。' : '最近还没有已确认的记录。', recordIds: [] };
     }
     return {
       kind: 'list',
-      message: content.includes('今天')
+      message: isContextQuery
+        ? '这是当前定位的记录。'
+        : content.includes('今天')
         ? `今天有 ${scopedRecords.length} 条已确认记录。`
         : `这是最近的 ${scopedRecords.length} 条已确认记录。`,
       recordIds: scopedRecords.map((record) => record.recordId),

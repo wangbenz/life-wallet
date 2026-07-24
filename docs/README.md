@@ -8,7 +8,7 @@
 |---|---|---|
 | `01-product` | `00-current-status.md` | 当前事实、边界和下一步 |
 | `01-product` | `03-product-definition.md` | 用户、核心闭环、页面和产品原则 |
-| `01-product` | `08-life-ontology.md` | Activity、维度、人生币和不确定性规则 |
+| `01-product` | `08-life-ontology.md` | Activity、维度、时间单位和不确定性规则 |
 | `02-architecture` | `01-technical-architecture.md` | 系统模块和技术边界 |
 | `02-architecture` | `03-api-design.md` | 后端 API 合约 |
 | `02-architecture` | `04-agent-design.md` | Agent 协议、Tools、状态和学习路线 |

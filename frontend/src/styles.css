@@ -777,7 +777,7 @@ button:not(:disabled):active {
 }
 
 .state-line,
-.coin-note {
+.duration-note {
   margin: 14px 0 0;
   padding: 11px 13px;
   border-radius: 13px;
@@ -1092,6 +1092,41 @@ button:not(:disabled):active {
   margin: 0 auto 24px;
   color: var(--muted);
   line-height: 1.8;
+}
+
+.onboarding-value-path {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 0;
+  counter-reset: value-step;
+  list-style: none;
+}
+
+.onboarding-value-path li {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  justify-items: center;
+  color: #56675c;
+  font-size: 11px;
+  line-height: 1.45;
+  counter-increment: value-step;
+}
+
+.onboarding-value-path li::before {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid #cfe2d1;
+  border-radius: 9px;
+  color: var(--green-800);
+  background: #f8fcf6;
+  content: counter(value-step);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 /* Life */
@@ -1639,6 +1674,234 @@ button:not(:disabled):active {
   }
 }
 
+/* 2026-07-24 产品审计收敛：聚焦开户、明确记录来源，并统一移动端触控目标。 */
+.onboarding-flow-shell .content-scroll {
+  padding-bottom: calc(28px + env(safe-area-inset-bottom));
+}
+
+.account-onboarding-screen {
+  min-height: 100dvh;
+  gap: 22px;
+}
+
+.focused-flow-header {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  margin-bottom: 8px;
+  color: var(--green-950);
+  font-size: 14px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.focused-flow-header::after {
+  content: '';
+}
+
+.focused-flow-header button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #dde5da;
+  border-radius: 14px;
+  color: var(--green-950);
+  background: #fffefa;
+  cursor: pointer;
+}
+
+.account-onboarding-copy {
+  padding: 6px 4px 0;
+}
+
+.account-onboarding-copy h1 {
+  margin: 12px 0 8px;
+  color: var(--green-950);
+  font-family: "Songti SC", "STSong", Georgia, serif;
+  font-size: clamp(30px, 8vw, 40px);
+  line-height: 1.18;
+}
+
+.account-onboarding-copy > p:last-child {
+  margin: 0;
+  color: #637168;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.onboarding-account-card {
+  padding: 20px;
+  border-color: #d6e7d7;
+  background: #f2f9ef;
+}
+
+.onboarding-account-card .account-form {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.account-form label > span:first-child small {
+  margin-left: 6px;
+  color: #929b95;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.date-trigger.placeholder {
+  color: #839088;
+}
+
+.icon-button,
+.balance-main .icon-button {
+  width: 44px;
+  height: 44px;
+}
+
+.record-date .date-trigger.compact,
+.saved-actions button,
+.history-card footer button,
+.calendar-dialog-heading > button,
+.calendar-footer button,
+.agent-suggestions button {
+  min-height: 44px;
+}
+
+.record-preview:focus {
+  outline: 3px solid rgb(79 166 109 / 16%);
+  outline-offset: 4px;
+}
+
+.record-preview {
+  padding-bottom: 112px;
+}
+
+.activity-source {
+  margin: 9px 0 3px;
+  color: #6f7972;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.activity-source span {
+  margin-right: 5px;
+  color: var(--green-700);
+  font-weight: 750;
+}
+
+.preview-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 13px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #efd8aa;
+  border-radius: 13px;
+  color: #765f38;
+  background: #fff7df;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.preview-warning .icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+}
+
+.preview-actions {
+  position: fixed;
+  z-index: 24;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(calc(100% - 56px), 600px);
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #dce6dc;
+  border-radius: 18px;
+  background: rgb(255 254 250 / 96%);
+  box-shadow: 0 12px 34px rgb(40 68 48 / 16%);
+  backdrop-filter: blur(12px);
+  transform: translateX(-50%);
+}
+
+.history-card footer {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.history-card footer .history-agent-action {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.record-more {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.record-more > button {
+  min-width: 78px;
+  justify-content: center;
+}
+
+.record-more-menu {
+  position: absolute;
+  z-index: 25;
+  right: 0;
+  bottom: calc(100% + 8px);
+  display: grid;
+  width: 170px;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #dde5dc;
+  border-radius: 15px;
+  background: #fffefa;
+  box-shadow: 0 14px 34px rgb(39 63 46 / 16%);
+}
+
+.history-card footer .record-more-menu button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 42px;
+  border: 0;
+  background: #f6f8f4;
+}
+
+.record-more-menu p {
+  margin: 4px 5px 0;
+  color: #805952;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.feedback-boundary {
+  margin: -3px 0 12px;
+  color: #846f67;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+@media (min-width: 700px) {
+  .preview-actions {
+    bottom: 84px;
+  }
+}
+
+@media (max-width: 520px) {
+  .preview-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .preview-actions p {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (min-width: 900px) {
   .tab-bar {
     padding-right: 14px;
@@ -2005,6 +2268,40 @@ body {
 .quick-record button:nth-child(2) .icon { color: #d49a17; }
 .quick-record button:nth-child(3) .icon { color: #df7d5d; }
 
+.agent-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid #e0e6da;
+  border-radius: 14px;
+  color: #657168;
+  background: #fafbf6;
+}
+
+.agent-guide > span {
+  display: grid;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--green-700);
+  background: #eaf5e8;
+}
+
+.agent-guide .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.agent-guide p {
+  margin: 2px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
 .today-fragments {
   padding: 30px 0 8px;
 }
@@ -2132,7 +2429,7 @@ body {
   background: #edf7ea;
 }
 
-.coin-note,
+.duration-note,
 .state-line {
   background: #fff4d9;
 }
@@ -3134,6 +3431,13 @@ body.calendar-open {
   font-weight: 650;
 }
 
+.life-metric-grid strong.duration-value,
+.profile-metrics strong.duration-value {
+  font-size: 16px;
+  line-height: 1.3;
+  white-space: normal;
+}
+
 .life-metric-grid small {
   display: block;
   margin-top: 6px;
@@ -3664,4 +3968,93 @@ body.calendar-open {
   .settings-group {
     padding: 16px;
   }
+}
+
+/* 固定确认条必须以视口为参照；移除预览态 screen 动画留下的 transform 包含块。 */
+.today-screen:has(.record-preview) {
+  animation: none;
+  transform: none;
+}
+
+/* 最终移动端覆盖放在样式表末尾，避免早期视觉迭代规则把触控尺寸降回 36–40px。 */
+.record-date .date-trigger.compact,
+.saved-actions button,
+.history-card footer button,
+.calendar-dialog-heading > button,
+.calendar-footer button,
+.calendar-days button,
+.calendar-choice-grid button,
+.agent-suggestions button {
+  min-height: 44px;
+}
+
+.history-card footer {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.history-card footer .history-agent-action {
+  flex: 1;
+  justify-content: center;
+}
+
+/* “帮助与反馈”默认只保留一行入口，展开后再显示表单，降低 Me 页纵向负担。 */
+.feedback-card {
+  padding: 13px 16px;
+}
+
+.feedback-card summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 11px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.feedback-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.feedback-card summary .summary-copy {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+
+.feedback-card summary .summary-copy small {
+  color: var(--green-800);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.feedback-card summary .summary-copy strong {
+  color: #314239;
+  font-size: 14px;
+}
+
+.feedback-card summary .summary-copy em {
+  color: #929a94;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.feedback-card summary > .icon-chevron {
+  width: 17px;
+  height: 17px;
+  color: #8d978f;
+  transition: transform 180ms ease;
+}
+
+.feedback-card[open] summary > .icon-chevron {
+  transform: rotate(90deg);
+}
+
+.feedback-card form {
+  margin-top: 11px;
+  padding-top: 11px;
+}
+
+.feedback-card textarea {
+  min-height: 72px;
 }

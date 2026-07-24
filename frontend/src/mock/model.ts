@@ -9,6 +9,7 @@ export type Account = {
 
 export type AgentActivity = {
   title: string;
+  sourceText?: string;
   durationMinutes: number;
   dimension: string;
   domain: string;
@@ -19,7 +20,6 @@ export type AgentActivity = {
 export type DimensionSummary = {
   dimension: string;
   durationMinutes: number;
-  lifeCoinAmount: number;
 };
 
 export type TodayRecord = {

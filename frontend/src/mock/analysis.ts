@@ -1,7 +1,5 @@
 import type { AgentActivity, DimensionSummary, RecordPreview } from './model.ts';
 
-export const LIFE_MINUTES_PER_COIN = 24 * 60;
-
 type ActivityRule = {
   keywords: string[];
   dimension: string;
@@ -75,6 +73,7 @@ export function createMockAnalysis(lifeDate: string, rawContent: string): Record
   if (activities.length === 0) {
     activities.push({
       title: '今日生活片段',
+      sourceText: content,
       durationMinutes: findFirstDuration(content) ?? 60,
       dimension: '生活',
       domain: '日常',
@@ -107,7 +106,6 @@ export function summarizeDimensions(activities: AgentActivity[]): DimensionSumma
     .map(([dimension, durationMinutes]) => ({
       dimension,
       durationMinutes,
-      lifeCoinAmount: durationMinutes / LIFE_MINUTES_PER_COIN,
     }))
     .sort((a, b) => b.durationMinutes - a.durationMinutes);
 }
@@ -116,6 +114,7 @@ function createActivity(content: string, rule: ActivityRule): AgentActivity {
   const duration = findDurationNearKeywords(content, rule.keywords);
   return {
     title: rule.title(content),
+    sourceText: findSourcePhraseNearKeywords(content, rule.keywords),
     durationMinutes: duration ?? rule.fallbackMinutes,
     dimension: rule.dimension,
     domain: rule.domain,
@@ -124,17 +123,32 @@ function createActivity(content: string, rule: ActivityRule): AgentActivity {
   };
 }
 
+function findSourcePhraseNearKeywords(content: string, keywords: string[]) {
+  const phrases = content
+    .split(/[，。；;、\n]+/)
+    .map((phrase) => phrase.trim())
+    .filter(Boolean);
+  return phrases.find((phrase) => keywords.some((keyword) => phrase.toLowerCase().includes(keyword.toLowerCase()))) ?? content;
+}
+
 function findDurationNearKeywords(content: string, keywords: string[]) {
   const lower = content.toLowerCase();
+  const durations = [...content.matchAll(/(\d+(?:\.\d+)?)\s*(?:个)?\s*(小时|分钟)/g)]
+    .map((match) => ({
+      index: match.index,
+      minutes: match[2] === '小时' ? Math.round(Number(match[1]) * 60) : Math.round(Number(match[1])),
+    }));
+  let closest: { distance: number; minutes: number } | null = null;
+
   for (const keyword of keywords) {
     const index = lower.indexOf(keyword.toLowerCase());
     if (index < 0) continue;
-    const start = Math.max(0, index - 12);
-    const fragment = content.slice(start, index + keyword.length + 24);
-    const duration = findFirstDuration(fragment);
-    if (duration !== null) return duration;
+    for (const duration of durations) {
+      const distance = Math.abs(duration.index - index);
+      if (!closest || distance < closest.distance) closest = { distance, minutes: duration.minutes };
+    }
   }
-  return null;
+  return closest?.minutes ?? null;
 }
 
 function findFirstDuration(content: string) {

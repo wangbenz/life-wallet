@@ -94,8 +94,9 @@ VITE_AGENT_PROXY_TARGET=http://127.0.0.1:18081 pnpm dev
 - 站点目录：`/var/www/life-wallet/`。
 - 当前版本链接：`/var/www/life-wallet/current`。
 - Nginx 配置：`deploy/nginx/life-wallet.conf`。
-- 当前线上只部署早期 `frontend/dist/`，不部署本次真实 Agent 后端和数据库。
-- 本次功能发布前必须增加 Spring Boot 进程托管、`/api` 反向代理和 HTTPS；不能把 DeepSeek 密钥放进静态站点。
+- 当前已部署本版 `frontend/dist/`、Spring Boot 后端与测试数据库；Nginx `/api/` 反向代理到只监听本机的 `127.0.0.1:18080`。
+- 后端由 systemd 的 `life-wallet-api.service` 托管，MySQL 由 `/opt/life-wallet-test/compose.yml` 托管。测试机复用已缓存的 MySQL 8.0 镜像，Compose 默认仍为 MySQL 8.4，可通过服务器 `.env` 的 `MYSQL_IMAGE` 覆盖。
+- DeepSeek secret 文件当前为空，Agent 请求返回 `AGENT_NOT_CONFIGURED`；配置轮换后的密钥并重启服务后才能验证真实 Agent。HTTPS 仍未配置，不能保证手机麦克风能力。
 
 ## 发布
 
@@ -127,7 +128,14 @@ ssh jd "sudo ln -sfn /etc/nginx/sites-available/life-wallet /etc/nginx/sites-ena
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
-测试服务器后端使用 `deploy/test/compose.yml` 运行 MySQL 8.4 与 JRE 21 容器。服务器目录 `/opt/life-wallet-test/` 包含 Compose、后端 jar、权限为 `0600` 的 `.env` 与 DeepSeek secret 文件；这些秘密不进入 Git。后端只监听 `127.0.0.1:18080`，由 Nginx `/api/` 代理。
+测试服务器使用 `deploy/test/compose.yml` 运行 MySQL，并使用 `deploy/test/life-wallet-api.service` 和系统 JRE 21 托管后端。服务器目录 `/opt/life-wallet-test/` 包含 Compose、后端 jar、权限为 `0600` 的数据库环境文件与 DeepSeek secret 文件；这些秘密不进入 Git。后端只监听 `127.0.0.1:18080`，由 Nginx `/api/` 代理。
+
+后端更新后执行：
+
+```bash
+scp backend/target/life-wallet-api-0.0.1-SNAPSHOT.jar jd:/tmp/life-wallet-api.jar
+ssh jd "sudo install -m 0644 /tmp/life-wallet-api.jar /opt/life-wallet-test/life-wallet-api.jar && sudo systemctl restart life-wallet-api"
+```
 
 ## 冒烟测试
 
@@ -138,7 +146,7 @@ curl -fsSI http://<PUBLIC_IP>:15173/
 
 确认首页及其 JS / CSS 返回 `200`，并在手机浏览器检查 Today、Life、Me、保存和刷新恢复。
 
-真实 Agent 发布后还需检查：
+DeepSeek 密钥配置后还需检查：
 
 - 未登录用户无法从前端源码、响应、错误或日志中读到 DeepSeek 密钥。
 - 查询已有记录会返回真实卡片，新增 / 修改 / 删除都先出现确认卡。
@@ -153,4 +161,4 @@ ssh jd "ln -sfn /var/www/life-wallet/releases/<PREVIOUS_RELEASE> /var/www/life-w
 ssh jd "sudo nginx -t && sudo systemctl reload nginx"
 ```
 
-至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口，不满足可靠的麦克风安全上下文要求，也尚无后端进程；完成 HTTPS 和后端部署前不能把它描述为本次 Agent / 语音功能的可用测试环境。
+至少保留最近两个已验证版本。当前测试环境使用 HTTP + IP + 非标准端口，不满足可靠的麦克风安全上下文要求；DeepSeek 密钥也尚未配置，完成 HTTPS 与密钥配置前不能把它描述为 Agent / 语音完整可用环境。

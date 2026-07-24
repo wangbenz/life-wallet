@@ -1,0 +1,28 @@
+[Unit]
+Description=Life Wallet test API
+After=network-online.target docker.service
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+User=life-wallet
+Group=life-wallet
+WorkingDirectory=/opt/life-wallet-test
+EnvironmentFile=/opt/life-wallet-test/backend.env
+Environment=DB_URL=jdbc:mysql://127.0.0.1:13306/life_wallet?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+Environment=DB_USERNAME=life_wallet
+Environment=DB_POOL_SIZE=5
+Environment=SERVER_PORT=18080
+Environment=DEEPSEEK_API_KEY_FILE=/opt/life-wallet-test/secrets/deepseek-api-key
+Environment=DEEPSEEK_MODEL=deepseek-v4-flash
+Environment=TZ=Asia/Shanghai
+ExecStart=/usr/bin/java -Xms128m -Xmx640m -jar /opt/life-wallet-test/life-wallet-api.jar
+Restart=on-failure
+RestartSec=5
+SuccessExitStatus=143
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

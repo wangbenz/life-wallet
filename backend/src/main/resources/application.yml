@@ -10,7 +10,9 @@ spring:
     username: ${DB_USERNAME:sa}
     password: ${DB_PASSWORD:}
     hikari:
-      maximum-pool-size: ${DB_POOL_SIZE:5}
+      maximum-pool-size: ${DB_POOL_SIZE:100}
+      # 最大容量提高后仍只预热少量空闲连接，避免测试环境启动时直接占满数据库。
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
       connection-timeout: 5000
   flyway:
     enabled: true

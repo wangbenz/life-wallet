@@ -7,6 +7,10 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariDataSource;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +34,18 @@ class DatabaseMigrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Test
+    void hikariPoolSupportsOneHundredConnectionsWithoutPrewarmingAllOfThem() {
+        assertThat(dataSource).isInstanceOf(HikariDataSource.class);
+        HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
+
+        assertThat(hikariDataSource.getMaximumPoolSize()).isEqualTo(100);
+        assertThat(hikariDataSource.getMinimumIdle()).isEqualTo(5);
+    }
 
     @Test
     void flywayCreatesAllBusinessTables() {

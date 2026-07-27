@@ -89,7 +89,8 @@ export DB_PASSWORD="$LIFE_WALLET_DB_PASSWORD"
 | `DB_URL` | 本地文件型 H2 | JDBC 地址；部署环境设置为 MySQL |
 | `DB_USERNAME` | `sa` | 数据库用户 |
 | `DB_PASSWORD` | 空 | 数据库密码 |
-| `DB_POOL_SIZE` | `5` | 最大连接池大小 |
+| `DB_POOL_SIZE` | `100` | Hikari 最大连接池大小 |
+| `DB_POOL_MIN_IDLE` | `5` | 最小空闲连接数，避免启动时预占全部连接 |
 
 前端开发服务器默认代理 `/api` 到 `http://127.0.0.1:8080`。后端使用其他端口时：
 
@@ -107,6 +108,7 @@ VITE_AGENT_PROXY_TARGET=http://127.0.0.1:18081 pnpm dev
 - Nginx 配置：`deploy/nginx/life-wallet.conf`。
 - 当前已部署本版 `frontend/dist/`、Spring Boot 后端与测试数据库；Nginx `/api/` 反向代理到只监听本机的 `127.0.0.1:18080`。
 - 后端由 systemd 的 `life-wallet-api.service` 托管，MySQL 由 `/opt/life-wallet-test/compose.yml` 托管。测试机复用已缓存的 MySQL 8.0 镜像，Compose 默认仍为 MySQL 8.4，可通过服务器 `.env` 的 `MYSQL_IMAGE` 覆盖。
+- 测试环境 Hikari 连接池上限为 100，最小空闲连接为 5；MySQL `max_connections` 必须高于应用池上限并为管理连接保留余量。
 - DeepSeek 一次性导入文件当前已清空，API Key 以 AES-256-GCM 密文保存在数据库中；服务重启从数据库解密加载和真实 Agent 调用均已验证。HTTPS 仍未配置，不能保证手机麦克风能力。
 
 ## 发布
